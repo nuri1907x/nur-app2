@@ -178,6 +178,14 @@ nav.tabs button.on{color:var(--gold2)}
   <section class="view" id="v-quran">
     <div id="quranList">
       <div class="card hidden" id="continueCard"></div>
+      <div class="card">
+        <h2 data-t="verseSearch"></h2>
+        <form class="row" id="verseForm">
+          <input id="verseQ" data-ph="verseSearchPh" autocomplete="off">
+          <button class="btn">🔍</button>
+        </form>
+        <div id="verseRes"></div>
+      </div>
       <input id="surahSearch" data-ph="searchSurah" style="margin-bottom:12px">
       <div class="card list" id="surahList"><div class="loader"></div></div>
     </div>
@@ -336,7 +344,7 @@ const I18N = {
     noLoc:'Bitte Standort freigeben oder Stadt eingeben.', locErr:'Standort nicht verfügbar – bitte Stadt eingeben.',
     netErr:'Keine Verbindung. Bitte später erneut versuchen.', cityErr:'Stadt nicht gefunden.',
     noCompass:'Kein Kompass verfügbar – nutze die Gradzahl.',
-    searchSurah:'Sure suchen …', continue:'Weiterlesen', verse:'Vers', verses:'Verse', back:'Zurück',
+    searchSurah:'Sure suchen …', verseSearch:'In Versen suchen', verseSearchPh:'Wort, z. B. Geduld, Barmherzigkeit, صبر', hits:'Treffer', firstHits:'Erste {n} Treffer', loadingQuran:'Koran wird geladen (einmalig) …', continue:'Weiterlesen', verse:'Vers', verses:'Verse', back:'Zurück',
     meccan:'Mekkanisch', medinan:'Medinensisch', markRead:'Hier aufgehört', saved:'Gespeichert',
     hotd:'Hadith des Tages', findHadith:'Hadith nach Nummer', hadithNumber:'Nr. 1–7563', show:'Zeigen',
     books:'Bücher von Sahih al-Bukhari', book:'Buch', more:'Mehr laden',
@@ -365,7 +373,7 @@ const I18N = {
     noLoc:'Lütfen konum izni verin veya şehir girin.', locErr:'Konum alınamadı – lütfen şehir girin.',
     netErr:'Bağlantı yok. Lütfen daha sonra tekrar deneyin.', cityErr:'Şehir bulunamadı.',
     noCompass:'Pusula yok – derece değerini kullanın.',
-    searchSurah:'Sure ara …', continue:'Okumaya devam et', verse:'Ayet', verses:'ayet', back:'Geri',
+    searchSurah:'Sure ara …', verseSearch:'Ayetlerde ara', verseSearchPh:'Kelime, örn. sabır, rahmet, صبر', hits:'sonuç', firstHits:'İlk {n} sonuç', loadingQuran:'Kur’an yükleniyor (bir kerelik) …', continue:'Okumaya devam et', verse:'Ayet', verses:'ayet', back:'Geri',
     meccan:'Mekkî', medinan:'Medenî', markRead:'Burada kaldım', saved:'Kaydedildi',
     hotd:'Günün hadisi', findHadith:'Numara ile hadis', hadithNumber:'No. 1–7563', show:'Göster',
     books:'Sahîh-i Buhârî kitapları', book:'Kitap', more:'Daha fazla',
@@ -658,6 +666,42 @@ function renderSurahList(){
   } else cc.classList.add('hidden');
 }
 $('#surahSearch').oninput = renderSurahList;
+
+// ---------- Wortsuche in Versen (Übersetzung oder Arabisch) ----------
+const fullQuran = {};
+async function getFullQuran(ed){
+  if (!fullQuran[ed]) fullQuran[ed] = getJSON(`https://api.alquran.cloud/v1/quran/${ed}`).then(r => r.data.surahs).catch(e => { delete fullQuran[ed]; throw e; });
+  return fullQuran[ed];
+}
+const arNorm = x => x.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه');
+const deNorm = x => x.toLowerCase();
+$('#verseForm').onsubmit = async e => {
+  e.preventDefault();
+  const q = $('#verseQ').value.trim(); if (q.length < 2) return;
+  const isAr = /[\u0600-\u06FF]/.test(q);
+  const ed = isAr ? 'quran-simple-clean' : S.trans[S.lang];
+  const box = $('#verseRes');
+  box.innerHTML = `<p class="muted">${t('loadingQuran')}</p><div class="loader"></div>`;
+  let data;
+  try{ data = await getFullQuran(ed); }catch{ box.innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
+  const nq = isAr ? arNorm(q) : deNorm(q);
+  const res = []; let total = 0;
+  for (const su of data) for (const a of su.ayahs){
+    const txt = isAr ? arNorm(a.text) : deNorm(a.text);
+    if (txt.includes(nq)){ total++; if (res.length < 60) res.push({s: su.number, name: su.englishName, a: a.numberInSurah, text: a.text}); }
+  }
+  const mark = text => {
+    if (isAr) return esc(text);
+    const i = deNorm(text).indexOf(nq);
+    return i < 0 ? esc(text) : esc(text.slice(0,i)) + `<mark style="background:rgba(212,175,55,.35);color:inherit;border-radius:3px">${esc(text.slice(i, i+q.length))}</mark>` + esc(text.slice(i+q.length));
+  };
+  box.innerHTML = `<p class="muted">${total > res.length ? t('firstHits',{n:res.length}) + ' · ' : ''}${total} ${t('hits')}</p>` + res.map(r => `
+    <button class="item" data-sv="${r.s}:${r.a}" style="width:100%;text-align:left;display:block;padding:12px 2px;border-bottom:1px solid var(--line)">
+      <span class="badge">${r.s}:${r.a} · ${esc(r.name)}</span>
+      <div style="margin-top:6px;${isAr ? 'font-family:var(--ar);font-size:22px;direction:rtl;text-align:right;line-height:1.9' : ''}">${mark(r.text)}</div>
+    </button>`).join('');
+  box.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => { const [s2, a2] = b.dataset.sv.split(':').map(Number); loadSurah(s2, a2); });
+};
 
 async function loadSurah(n, scrollTo){
   openSurah = n;
