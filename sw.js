@@ -1,5 +1,5 @@
 // Nur – Service Worker: App offline, gelesene Suren/Hadithe/Gebetszeiten aus dem Cache
-const VERSION = 'nur-v5';
+const VERSION = 'nur-v6';
 const SHELL = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

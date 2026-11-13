@@ -217,8 +217,8 @@ nav.tabs button.on{color:var(--gold2)}
         <h2>📖 Sahih al-Bukhari auf Deutsch</h2>
         <div id="deStatus" class="muted" style="margin-bottom:8px"></div>
         <details id="deDetails">
-          <summary class="muted" style="cursor:pointer;margin-bottom:8px">Bände verwalten / als PDF lesen</summary>
-          <p class="muted" style="margin-top:0">Übersetzung der Föderalen Islamischen Union e.V. (9 Bände). 1) Band herunterladen ⬇︎ (Safari „Teilen“ → „In Dateien sichern“), 2) „Bände hinzufügen“ tippen. Alles bleibt nur auf deinem iPhone.</p>
+          <summary class="muted" style="cursor:pointer;margin-bottom:8px">Original-Bände als PDF</summary>
+          <p class="muted" style="margin-top:0">Übersetzung der Föderalen Islamischen Union e.V. (9 Bände) – zum Lesen im Original-Layout herunterladen ⬇︎ oder aus „Dateien“ hinzufügen.</p>
           <div id="deBukhariLinks"></div>
           <label class="btn" style="display:block;text-align:center;margin-top:12px">＋ Bände aus Dateien hinzufügen
             <input type="file" id="pdfIn" accept="application/pdf,.pdf" multiple class="hidden">
@@ -289,7 +289,7 @@ nav.tabs button.on{color:var(--gold2)}
     </div>
     <div class="card">
       <h2 data-t="sources"></h2>
-      <p class="muted">Gebetszeiten: AlAdhan API · Koran: AlQuran.cloud · Audio: Mishary Alafasy (Islamic Network) · Hadith: fawazahmed0/hadith-api · Hijri: Umm-al-Qura (Gerät)</p>
+      <p class="muted">Gebetszeiten: AlAdhan API · Koran: AlQuran.cloud · Audio: Mishary Alafasy (Islamic Network) · Hadith: fawazahmed0/hadith-api; deutsche Bukhari-Übersetzung © Föderale Islamische Union e.V. (islamische-union.de) · Hijri: Umm-al-Qura (Gerät)</p>
     </div>
   </section>
 </main>
@@ -409,7 +409,7 @@ const S = {
   trans: store.get('trans', {de:'de.bubenheim', tr:'tr.diyanet'}),
   arsize: store.get('arsize', 28),
   lastRead: store.get('lastRead', null),
-  hlang: store.get('hlang', 'tr'),
+  hlang: store.get('hlang', null) || ((store.get('lang', 'de') === 'tr') ? 'tr' : 'de'),
 };
 const t = (k, vars={}) => {
   let s = (I18N[S.lang][k] ?? I18N.de[k] ?? k);
@@ -465,7 +465,7 @@ function applyLang(){
   $('#hadithLangNote').textContent = '';
 }
 function setLang(l){
-  S.lang = l; store.set('lang', l); applyLang();
+  S.lang = l; store.set('lang', l); autoHadithLang(); applyLang();
   renderPrayer(); renderSurahList(); renderCalendar(); loaded.hadith = false;
   if (current === 'hadith') initHadith();
   if (!$('#quranReader').classList.contains('hidden') && openSurah) loadSurah(openSurah);
@@ -746,7 +746,7 @@ function hadithCard(h, ar, fallback){
 
 async function initHadith(){
   loaded.hadith = true;
-  await loadDE(); deStatus();
+  autoHadithLang(); await loadDE(); deStatus();
   $('#deSearchCard').classList.toggle('hidden', !useDE());
   // Hadith des Tages
   const doy = daysBetween(new Date(new Date().getFullYear(),0,1), new Date());
@@ -958,7 +958,7 @@ $('#pdfIn').onchange = async e => {
     }
     await idb.put(n, f); have.push(n);
   }
-  e.target.value = ''; renderBands(); ensureParsed();
+  e.target.value = ''; renderBands();
 };
 
 /* ---------- Bände in Hadithe zerlegen (auf dem Gerät) ---------- */
@@ -1086,12 +1086,21 @@ async function parseBand(doc, onProgress){
 }
 
 const DE = {books: [], byNum: new Map(), nums: [], bands: [], busy: false};
+const COPY_DE = '© Föderale Islamische Union e.V. – <a href="https://islamische-union.de/sahih-al-bukhary/" target="_blank" rel="noopener">islamische-union.de</a>';
 const useDE = () => S.hlang === 'de' && DE.nums.length > 0;
+let deLoaded = null;
 async function loadDE(){
+  if (deLoaded) return deLoaded;
+  return deLoaded = (async () => {
   DE.books = []; DE.byNum = new Map(); DE.bands = [];
-  let keys = []; try{ keys = (await idbParsed.keys()).map(Number).sort((a,b) => a-b); }catch{}
-  for (const k of keys){
-    const rec = await idbParsed.get(k); if (!rec || rec.v !== PARSE_V) continue;
+  const recs = await Promise.all(Array.from({length:9}, async (_, i) => {
+    const k = i + 1;
+    try{ const r = await fetch(`data/de/band-${k}.json`); if (r.ok) return [k, await r.json()]; }catch{}
+    try{ const rec = await idbParsed.get(k); if (rec && rec.v === PARSE_V) return [k, rec]; }catch{}
+    return [k, null];
+  }));
+  for (const [k, rec] of recs){
+    if (!rec) continue;
     DE.bands.push(k);
     rec.books.forEach(b => {
       const book = {...b, band: k, idx: DE.books.length};
@@ -1100,16 +1109,19 @@ async function loadDE(){
     });
   }
   DE.nums = [...DE.byNum.keys()].sort((a,b) => a-b);
-  if (DE.nums.length && !store.get('hlangUser', false) && S.hlang !== 'de'){ S.hlang = 'de'; store.set('hlang', 'de'); $('#hadithLangSel').value = 'de'; }
+  if (!DE.nums.length) deLoaded = null;
+  })();
+}
+function autoHadithLang(){
+  if (store.get('hlangUser', false)) return;
+  S.hlang = S.lang === 'tr' ? 'tr' : 'de'; store.set('hlang', S.hlang); $('#hadithLangSel').value = S.hlang;
 }
 async function deStatus(msg){
   let have = []; try{ have = (await idb.keys()).map(Number); }catch{}
-  $('#deStatus').innerHTML = msg || (DE.bands.length
-    ? `✓ ${DE.bands.length} von 9 Bänden eingelesen · ${DE.nums.length.toLocaleString('de-DE')} Hadithe auf Deutsch` +
-      (DE.bands.length < 9 ? `<br>Fehlende Bände unter „Bände verwalten“ hinzufügen.` : '') +
+  $('#deStatus').innerHTML = msg || (DE.nums.length
+    ? `${DE.nums.length.toLocaleString('de-DE')} Hadithe in deutscher Übersetzung.<br>${COPY_DE}` +
       (S.hlang !== 'de' ? `<br>Zum Anzeigen: ⚙️ → Sprache der Hadithe → Deutsch.` : '')
-    : (have.length ? 'Bände werden eingelesen …' : 'Noch keine Bände hinzugefügt – unter „Bände verwalten“ hinzufügen.'));
-  if (!have.length) $('#deDetails').open = true;
+    : t('netErr'));
 }
 async function ensureParsed(){
   if (DE.busy) return; DE.busy = true;
@@ -1145,7 +1157,7 @@ function deCard(entry, wrap = true){
     <div class="txt" style="white-space:normal">${paras}</div>
     <div class="row" style="justify-content:space-between;margin-top:4px">
       <button class="btn ghost small" data-ar="${h.n}">عربي</button>
-      <span class="muted" style="font-size:11px">Übers.: Föderale Islamische Union · Band ${book.band}</span></div>
+      <span class="muted" style="font-size:11px;text-align:right">© Föderale Islamische Union e.V. · Band ${book.band}</span></div>
     <div class="arabic hidden" id="ar-${h.n}-${Math.random().toString(36).slice(2,7)}"></div>`;
   return wrap ? `<div class="card hadith">${inner}</div>` : inner;
 }
@@ -1262,7 +1274,7 @@ $('#pdfSearch').onsubmit = async e => {
   $('#pdfMsg').textContent = 'Nicht gefunden.';
 };
 $('#pdfClose').onclick = () => { $('#pdfView').classList.add('hidden'); document.body.style.overflow = ''; pdfObs?.disconnect(); $('#pdfPages').innerHTML=''; pdfDoc = null; };
-renderBands(); loadDE().then(() => { deStatus(); ensureParsed(); });
+renderBands();
 const applyFont = () => document.documentElement.style.setProperty('--arsize', S.arsize + 'px');
 $('#fontRange').value = S.arsize;
 $('#fontRange').oninput = e => { S.arsize = +e.target.value; store.set('arsize', S.arsize); applyFont(); };
