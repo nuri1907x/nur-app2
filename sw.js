@@ -1,5 +1,5 @@
 // Yüsra – Service Worker: App offline, gelesene Suren/Hadithe/Gebetszeiten aus dem Cache
-const VERSION = 'nur-v25';
+const VERSION = 'nur-v26';
 const DATA = 'yusra-data', OFFLINE = 'yusra-offline'; // bleiben über Updates hinweg erhalten
 const SHELL = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './logo.svg', './data/content.js'];
 
