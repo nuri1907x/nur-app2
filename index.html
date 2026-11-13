@@ -250,6 +250,13 @@ nav.tabs button.on{color:var(--gold2)}
         </select>
       </div>
       <div class="field"><label data-t="translation"></label><select id="transSel"></select></div>
+      <div class="field"><label data-t="hadithLang"></label>
+        <select id="hadithLangSel">
+          <option value="tr">Türkçe</option>
+          <option value="de">Deutsch</option>
+          <option value="en">English</option>
+        </select>
+      </div>
       <div class="field"><label data-t="fontSize"></label>
         <input type="range" id="fontRange" min="20" max="42" step="2" style="padding:0">
         <div class="ayah"><div class="arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div></div>
@@ -296,13 +303,13 @@ const I18N = {
     hotd:'Hadith des Tages', findHadith:'Hadith nach Nummer', hadithNumber:'Nr. 1–7563', show:'Zeigen',
     books:'Bücher von Sahih al-Bukhari', book:'Buch', more:'Mehr laden',
     hadithNoteDe:'Hinweis: Für Sahih al-Bukhari gibt es in der Datenquelle keine deutsche Übersetzung – angezeigt wird Arabisch + Englisch.',
-    hadithFallback:'Übersetzung nicht verfügbar – Englisch angezeigt.',
+    hadithFallback:'Diese Sprache ist für Bukhari nicht verfügbar – Englisch angezeigt. Sprache ändern: Einstellungen → Sprache der Hadithe.',
     holyDays:'Besondere Tage', moonNote:'Berechnet nach Umm-al-Qura. Je nach Mondsichtung bzw. Diyanet kann ein Tag Abweichung möglich sein.',
     ramadan:'Ramadan', ramadanDay:'Tag {d} von 30', untilRamadan:'Noch {d} Tage bis Ramadan', ramadanStart:'Beginn ca. {date}',
     imsak:'Imsak (Sahur-Ende)', iftar:'Iftar', fastTracker:'Fasten-Tracker', fasted:'{n} von 30 Tagen gefastet',
     eve:'Abend', today:'heute', tomorrow:'morgen', inDays:'in {d} Tagen',
     settings:'Einstellungen', language:'Sprache', method:'Berechnungsmethode', translation:'Koran-Übersetzung',
-    fontSize:'Arabische Schriftgröße', install:'Auf dem iPhone installieren',
+    fontSize:'Arabische Schriftgröße', hadithLang:'Sprache der Hadithe', install:'Auf dem iPhone installieren',
     installHint:'In Safari auf „Teilen“ tippen → „Zum Home-Bildschirm“. Danach startet Nur wie eine App – auch offline für bereits geöffnete Inhalte.',
     sources:'Datenquellen',
     prayers:{Fajr:'Fadschr',Sunrise:'Sonnenaufgang',Dhuhr:'Dhuhr',Asr:'Asr',Maghrib:'Maghrib',Isha:'Ischa'},
@@ -324,13 +331,13 @@ const I18N = {
     meccan:'Mekkî', medinan:'Medenî', markRead:'Burada kaldım', saved:'Kaydedildi',
     hotd:'Günün hadisi', findHadith:'Numara ile hadis', hadithNumber:'No. 1–7563', show:'Göster',
     books:'Sahîh-i Buhârî kitapları', book:'Kitap', more:'Daha fazla',
-    hadithNoteDe:'', hadithFallback:'Türkçe çeviri bulunamadı – İngilizce gösteriliyor.',
+    hadithNoteDe:'', hadithFallback:'Bu dilde çeviri bulunamadı – İngilizce gösteriliyor. Ayarlar → Hadis dili.',
     holyDays:'Mübarek gün ve geceler', moonNote:'Ümmü’l-Kurâ takvimine göre hesaplanmıştır. Diyanet takvimiyle bir gün fark olabilir.',
     ramadan:'Ramazan', ramadanDay:'30 günün {d}. günü', untilRamadan:'Ramazan’a {d} gün kaldı', ramadanStart:'Başlangıç yakl. {date}',
     imsak:'İmsak (sahur sonu)', iftar:'İftar', fastTracker:'Oruç takibi', fasted:'30 günün {n} günü oruç tutuldu',
     eve:'akşamı', today:'bugün', tomorrow:'yarın', inDays:'{d} gün sonra',
     settings:'Ayarlar', language:'Dil', method:'Hesaplama yöntemi', translation:'Meal',
-    fontSize:'Arapça yazı boyutu', install:'iPhone’a yükle',
+    fontSize:'Arapça yazı boyutu', hadithLang:'Hadis dili', install:'iPhone’a yükle',
     installHint:'Safari’de “Paylaş”a dokunun → “Ana Ekrana Ekle”. Nur bir uygulama gibi açılır – daha önce açılan içerikler çevrimdışı da çalışır.',
     sources:'Kaynaklar',
     prayers:{Fajr:'İmsak',Sunrise:'Güneş',Dhuhr:'Öğle',Asr:'İkindi',Maghrib:'Akşam',Isha:'Yatsı'},
@@ -364,6 +371,7 @@ const S = {
   trans: store.get('trans', {de:'de.bubenheim', tr:'tr.diyanet'}),
   arsize: store.get('arsize', 28),
   lastRead: store.get('lastRead', null),
+  hlang: store.get('hlang', 'tr'),
 };
 const t = (k, vars={}) => {
   let s = (I18N[S.lang][k] ?? I18N.de[k] ?? k);
@@ -416,7 +424,7 @@ function applyLang(){
   const sel = $('#transSel'); sel.innerHTML = TRANSLATIONS[S.lang].map(([v,n]) => `<option value="${v}">${n}</option>`).join('');
   sel.value = S.trans[S.lang];
   $('#hdrHijri').textContent = hijriStr(hijri(new Date())) + ' · ' + fmtDate(new Date(), {weekday:'long', day:'numeric', month:'long'});
-  $('#hadithLangNote').textContent = S.lang === 'de' ? t('hadithNoteDe') : '';
+  $('#hadithLangNote').textContent = '';
 }
 function setLang(l){
   S.lang = l; store.set('lang', l); applyLang();
@@ -674,11 +682,12 @@ $('#nextSurah').onclick = () => openSurah < 114 && loadSurah(openSurah+1);
 /* =========================================================
    HADITH – Sahih al-Bukhari
    ========================================================= */
-const hadithEd = () => S.lang === 'tr' ? ['tur-bukhari','eng-bukhari'] : ['eng-bukhari'];
+const HADITH_EDS = {tr:['tur-bukhari'], de:['deu-bukhari','ger-bukhari'], en:[]};
+const hadithEd = () => [...HADITH_EDS[S.hlang], 'eng-bukhari'];
 async function fetchHadithPath(sub){ // sub z. B. "sections/3.json" oder "15.json"
   const eds = hadithEd();
   for (let i = 0; i < eds.length; i++){
-    try{ return {data: await getJSON(hadithUrls(`editions/${eds[i]}/${sub}`)), fallback: i > 0 && S.lang === 'tr'}; }catch{}
+    try{ return {data: await getJSON(hadithUrls(`editions/${eds[i]}/${sub}`)), fallback: S.hlang !== 'en' && eds[i] === 'eng-bukhari'}; }catch{}
   }
   throw new Error('hadith');
 }
@@ -846,6 +855,8 @@ document.querySelectorAll('#langSeg button').forEach(b => b.onclick = () => setL
 $('#methodSel').value = S.method;
 $('#methodSel').onchange = e => { S.method = +e.target.value; store.set('method', S.method); store.set('timingsCache', null); fetchTimings(); };
 $('#transSel').onchange = e => { S.trans[S.lang] = e.target.value; store.set('trans', S.trans); };
+$('#hadithLangSel').value = S.hlang;
+$('#hadithLangSel').onchange = e => { S.hlang = e.target.value; store.set('hlang', S.hlang); loaded.hadith = false; };
 const applyFont = () => document.documentElement.style.setProperty('--arsize', S.arsize + 'px');
 $('#fontRange').value = S.arsize;
 $('#fontRange').oninput = e => { S.arsize = +e.target.value; store.set('arsize', S.arsize); applyFont(); };
