@@ -540,7 +540,9 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
   <section class="view" id="v-mosques">
     <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
     <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="mosques"></h1><div class="psub" data-t="psMosques"></div></div></div>
-    <div class="seg" id="mqRadius"><button data-r="2000">2 km</button><button class="on" data-r="5000">5 km</button><button data-r="10000">10 km</button></div>
+    <div class="card" id="mqGoogle"></div>
+    <div class="chips" id="mqFilter"><button class="chip on" data-f="all" data-t="all"></button><button class="chip" data-f="ditib">DITIB</button><button class="chip" data-f="igmg">IGMG</button></div>
+    <div class="seg" id="mqRadius"><button data-r="2000">2 km</button><button class="on" data-r="5000">5 km</button><button data-r="10000">10 km</button><button data-r="20000">20 km</button></div>
     <div class="card" style="padding:0;overflow:hidden"><div id="mqMap" style="height:260px;background:var(--card2)"></div></div>
     <div class="card list" id="mqList"></div>
   </section>
@@ -859,6 +861,7 @@ let current = 'today';
 const loaded = {};
 function show(view){
   current = view;
+  try{ history.replaceState(null, '', view === 'today' ? location.pathname + location.search : '#' + view); store.set('lastView', {h: view, at: Date.now()}); }catch{}
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-'+view));
   const tab = ['today','prayer','quran','hadith'].includes(view) ? view : (view === 'settings' ? '' : 'more');
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === tab));
@@ -1094,6 +1097,7 @@ $('#verseForm').onsubmit = async e => {
 
 async function loadSurah(n, scrollTo){
   openSurah = n;
+  try{ history.replaceState(null, '', '#quran:' + n); store.set('lastView', {h: 'quran:' + n, at: Date.now()}); }catch{}
   $('#quranList').classList.add('hidden'); $('#quranReader').classList.remove('hidden');
   $('#surahBody').innerHTML = '<div class="loader"></div>';
   window.scrollTo(0,0);
@@ -1155,7 +1159,7 @@ function playAyah(globalNo, btn){
     if (next){ next.closest('.ayah').scrollIntoView({behavior:'smooth', block:'center'}); playAyah(globalNo+1, next); }
   };
 }
-$('#backSurah').onclick = () => { player.pause(); $('#quranReader').classList.add('hidden'); $('#quranList').classList.remove('hidden'); openSurah = null; renderSurahList(); };
+$('#backSurah').onclick = () => { try{ history.replaceState(null, '', '#quran'); }catch{} player.pause(); $('#quranReader').classList.add('hidden'); $('#quranList').classList.remove('hidden'); openSurah = null; renderSurahList(); };
 $('#prevSurah').onclick = () => openSurah > 1 && loadSurah(openSurah-1);
 $('#nextSurah').onclick = () => openSurah < 114 && loadSurah(openSurah+1);
 
@@ -2064,19 +2068,41 @@ function fetchJSONTimeout(url, ms, signal){
 function anyOf(ps){ // erstes erfolgreiches Ergebnis (Promise.any-Ersatz für ältere iPhones)
   return new Promise((res, rej) => { let n = ps.length; ps.forEach(p => p.then(res, () => { if (--n === 0) rej(new Error('all failed')); })); });
 }
-let mqReq = 0;
+let mqReq = 0, mqFilter = 'all', mqLast = [];
+const gmSearch = q => { const {lat, lng: lo} = S.loc; return `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${lat},${lo},13z`; };
+const gmRoute = m => `https://www.google.com/maps/dir/?api=1&destination=${m.la},${m.ln}`;
+function mqKind(tg){
+  const hay = [tg.name, tg.operator, tg.brand, tg['operator:short'], tg.website, tg['name:de'], tg['official_name']].filter(Boolean).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  if (/d[iİı]t[iİı]b|türkisch-islamische union|diyanet/.test(hay)) return 'ditib';
+  if (/[iİı]gmg|millî görüş|milli görüş|milli gorus/.test(hay)) return 'igmg';
+  return '';
+}
+function renderMqGoogle(){
+  if (!S.loc){ $('#mqGoogle').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
+  const tr = S.lang === 'tr', mq = tr ? 'cami' : 'Moschee';
+  $('#mqGoogle').innerHTML = `<h2>Google Maps</h2>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <a class="btn" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch('DITIB ' + mq)}">DITIB</a>
+      <a class="btn" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch('IGMG ' + mq)}">IGMG</a>
+      <a class="btn ghost" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch(tr ? 'cami' : 'Moschee')}">${t('all')}</a>
+    </div>
+    <div class="muted" style="margin-top:8px;font-size:12.5px">${tr ? 'Google Maps’te konumunun yakınındaki camileri gösterir.' : 'Öffnet Google Maps mit den Moscheen in deiner Nähe.'}</div>`;
+}
 function mqRenderList(list){
-  const {lat, lng: lo} = S.loc;
-  $('#mqList').innerHTML = list.length ? list.slice(0, 40).map(m => `<div class="item">
+  mqLast = list;
+  const L2 = mqFilter === 'all' ? list : list.filter(m => m.kind === mqFilter);
+  $('#mqList').innerHTML = L2.length ? L2.slice(0, 50).map(m => `<div class="item">
       <span class="tile-ic" style="width:38px;height:38px;font-size:18px">🕌</span>
-      <div class="main"><b>${esc(m.name)}</b><span class="muted">${m.d < 1 ? Math.round(m.d * 1000) + ' m' : m.d.toFixed(1).replace('.', ',') + ' km'}${m.addr ? ' · ' + esc(m.addr) : ''}</span></div>
-      <a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="https://maps.apple.com/?daddr=${m.la},${m.ln}&q=${encodeURIComponent(m.name)}">${S.lang === 'tr' ? 'Yol' : 'Route'}</a></div>`).join('')
-    : `<div class="muted" style="padding:6px 0">${t('noMosques')}</div>`;
+      <div class="main"><b>${esc(m.name)}</b>${m.kind ? ` <span class="badge" style="font-size:10.5px">${m.kind.toUpperCase()}</span>` : ''}
+        <span class="muted" style="display:block">${m.d < 1 ? Math.round(m.d * 1000) + ' m' : m.d.toFixed(1).replace('.', ',') + ' km'}${m.addr ? ' · ' + esc(m.addr) : ''}</span></div>
+      <a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="${gmRoute(m)}">${S.lang === 'tr' ? 'Yol' : 'Route'}</a></div>`).join('')
+    : `<div class="muted" style="padding:6px 0">${mqFilter === 'all' ? t('noMosques') : (S.lang === 'tr' ? `Haritada ${mqFilter.toUpperCase()} olarak işaretli cami yok – yukarıdan Google Maps’te ara.` : `Keine als ${mqFilter.toUpperCase()} gekennzeichnete Moschee in den Kartendaten – nutze oben Google Maps.`)}</div>`;
 }
-function mqAppleLink(){
-  const {lat, lng: lo} = S.loc, q = S.lang === 'tr' ? 'Cami' : 'Moschee';
-  return `<a class="btn" style="text-decoration:none;display:block;text-align:center;margin-top:12px" target="_blank" rel="noopener" href="https://maps.apple.com/?q=${encodeURIComponent(q)}&sll=${lat},${lo}&z=13">🗺️ ${S.lang === 'tr' ? 'Apple Haritalar’da ara' : 'In Apple Karten suchen'}</a>`;
-}
+function mqAppleLink(){ return ''; }
+$('#mqFilter').querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
+  mqFilter = b.dataset.f; $('#mqFilter').querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
+  mqRenderList(mqLast);
+});
 async function mqDrawMap(list){
   const {lat, lng: lo} = S.loc;
   try{
@@ -2096,15 +2122,17 @@ async function mqDrawMap(list){
 }
 async function initMosques(){
   $('#mqRadius').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === mqRadius));
-  if (!S.loc){ $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
+  if (!S.loc){ renderMqGoogle(); $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
   const req = ++mqReq, {lat, lng: lo} = S.loc;
-  const ckey = `mq-${lat.toFixed(2)}-${lo.toFixed(2)}-${mqRadius}`, cached = store.get(ckey, null);
+  renderMqGoogle();
+  const ckey = `mq2-${lat.toFixed(2)}-${lo.toFixed(2)}-${mqRadius}`, cached = store.get(ckey, null);
   // 1) sofort: Karte + Zwischenspeicher (falls vorhanden)
   mqDrawMap(cached?.list);
   if (cached && Date.now() - cached.at < 7 * 864e5){ mqRenderList(cached.list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink()); return; }
   $('#mqList').innerHTML = `<div class="loader" style="height:60px"></div><div class="muted center" style="margin-top:8px">${S.lang === 'tr' ? 'Camiler aranıyor …' : 'Moscheen werden gesucht …'}</div>` + mqAppleLink();
   // 2) alle Server gleichzeitig, erster gewinnt, max. 12 s
-  const q = `[out:json][timeout:10];(node["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo});way["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo}););out center 60;`;
+  const A = `(around:${mqRadius},${lat},${lo})`;
+  const q = `[out:json][timeout:15];(nwr["amenity"="place_of_worship"]["religion"="muslim"]${A};nwr["building"="mosque"]${A};nwr["amenity"="place_of_worship"]["name"~"moschee|camii|cami|mescid|masjid|mosque|ditib|igmg|islam",i]${A};nwr["operator"~"ditib|igmg|diyanet|milli",i]${A};);out center 120;`;
   const ctl = new AbortController();
   let data;
   try{ data = await anyOf(OVERPASS.map(u => fetchJSONTimeout(`${u}?data=${encodeURIComponent(q)}`, 12000, ctl.signal))); ctl.abort(); }
@@ -2117,8 +2145,12 @@ async function initMosques(){
   const list = (data.elements || []).map(e => {
     const la = e.lat ?? e.center?.lat, ln = e.lon ?? e.center?.lon, tg = e.tags || {};
     const addr = [[tg['addr:street'], tg['addr:housenumber']].filter(Boolean).join(' '), tg['addr:city']].filter(Boolean).join(', ');
-    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln)};
-  }).filter(m => m.la).sort((a, b) => a.d - b.d);
+    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln), kind: mqKind(tg)};
+  }).filter(m => m.la).sort((a, b) => a.d - b.d)
+    .reduce((acc, m) => { // Doppelte (Gebäude + Punkt) zusammenführen
+      const dup = acc.find(x => hav(x.la, x.ln, m.la, m.ln) < 0.05);
+      if (dup){ dup.kind ||= m.kind; if (!dup.addr) dup.addr = m.addr; } else acc.push(m);
+      return acc; }, []);
   store.set(ckey, {at: Date.now(), list});
   mqRenderList(list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink());
   mqDrawMap(list);
@@ -2217,6 +2249,15 @@ applyLang();
 fetchTimings();
 renderCalendar();
 renderToday(); renderVotd(); renderTodayHadith();
+(async () => { // zuletzt geöffnete Seite wiederherstellen
+  const lv = store.get('lastView', null);
+  const h = decodeURIComponent(location.hash.slice(1)) || (lv && Date.now() - lv.at < 30 * 60000 ? lv.h : '');
+  if (!h || h === 'today') return;
+  const [v, arg] = h.split(':');
+  if (!document.getElementById('v-' + v)) return;
+  show(v);
+  if (v === 'quran' && +arg){ if (!surahs.length || !loaded.quran) await initQuran(); loadSurah(+arg); }
+})();
 if (!S.loc) $('#gpsBtn').click();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible'){
