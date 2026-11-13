@@ -204,6 +204,11 @@ nav.tabs button.on{color:var(--gold2)}
         </form>
         <div id="hadithNumResult"></div>
       </div>
+      <div class="card" id="deBukhari">
+        <h2>📖 Sahih al-Bukhari auf Deutsch</h2>
+        <p class="muted" style="margin-top:0">Vollständige deutsche Übersetzung der Föderalen Islamischen Union e.V. – als PDF (9 Bände).</p>
+        <div class="row" style="flex-wrap:wrap;gap:8px" id="deBukhariLinks"></div>
+      </div>
       <div class="card list" id="bookList"><div class="loader"></div></div>
     </div>
     <div id="hadithBook" class="hidden">
@@ -857,6 +862,8 @@ $('#methodSel').onchange = e => { S.method = +e.target.value; store.set('method'
 $('#transSel').onchange = e => { S.trans[S.lang] = e.target.value; store.set('trans', S.trans); };
 $('#hadithLangSel').value = S.hlang;
 $('#hadithLangSel').onchange = e => { S.hlang = e.target.value; store.set('hlang', S.hlang); loaded.hadith = false; };
+$('#deBukhariLinks').innerHTML = Array.from({length:9},(_,i) =>
+  `<a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="https://islamische-union.de/wp-content/uploads/2026/05/sahih-al-bukhary-deutsch-band-${i+1}.pdf">Band ${i+1}</a>`).join('');
 const applyFont = () => document.documentElement.style.setProperty('--arsize', S.arsize + 'px');
 $('#fontRange').value = S.arsize;
 $('#fontRange').oninput = e => { S.arsize = +e.target.value; store.set('arsize', S.arsize); applyFont(); };
