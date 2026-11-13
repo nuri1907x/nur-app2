@@ -290,6 +290,13 @@ nav.tabs button.on{color:var(--gold2);background:var(--hl)}
 .wstep:last-child{border-bottom:0}
 .wstep > span{width:28px;height:28px;border-radius:50%;background:var(--gold);color:var(--onaccent);display:grid;place-items:center;font-weight:800;font-size:14px;flex:none}
 
+#ptr{position:fixed;left:0;right:0;top:calc(var(--safe-t) + 58px);z-index:25;display:flex;justify-content:center;pointer-events:none;opacity:0;transform:translateY(-30px)}
+#ptr .ptr-ic{width:38px;height:38px;border-radius:50%;background:var(--card);color:var(--gold2);display:grid;place-items:center;box-shadow:0 6px 20px rgba(0,0,0,.25);border:1px solid var(--line)}
+#ptr .ptr-ic svg{width:18px;height:18px;transition:transform .15s}
+#ptr.ready .ptr-ic svg{transform:rotate(180deg)}
+#ptr.loading .ptr-ic svg{animation:spin .8s linear infinite}
+#ptr.anim{transition:transform .25s ease, opacity .25s ease}
+
 /* ---------- Einstellungen (gruppiert) ---------- */
 .group-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin:18px 6px 8px}
 .group{background:var(--card);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:6px}
@@ -319,6 +326,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>
   </button>
 </header>
+<div id="ptr"><div class="ptr-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg></div></div>
 <div id="themePop" class="hidden">
   <div class="muted" style="font-weight:700;margin-bottom:12px" data-t="design"></div>
   <div class="themes" id="themeGridPop"></div>
@@ -2162,6 +2170,36 @@ $('#icsGo').onclick = async () => {
   a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 30000);
 };
+
+/* ---------- Nach unten ziehen zum Aktualisieren ---------- */
+(() => {
+  const el = $('#ptr'), TH = 75;
+  let y0 = null, dist = 0, busy = false;
+  const blocked = e => busy || !$('#pdfView').classList.contains('hidden') || !$('#themePop').classList.contains('hidden') || e.target.closest('input, select, textarea, #mqMap');
+  window.addEventListener('touchstart', e => { if (window.scrollY <= 0 && !blocked(e)) { y0 = e.touches[0].clientY; dist = 0; el.classList.remove('anim'); } else y0 = null; }, {passive: true});
+  window.addEventListener('touchmove', e => {
+    if (y0 === null) return;
+    dist = Math.max(0, e.touches[0].clientY - y0);
+    if (window.scrollY > 0) { dist = 0; }
+    const d = Math.min(dist * 0.5, 90);
+    el.style.opacity = Math.min(1, d / 40);
+    el.style.transform = `translateY(${d - 30}px)`;
+    el.classList.toggle('ready', dist * 0.5 >= TH * 0.6);
+  }, {passive: true});
+  window.addEventListener('touchend', async () => {
+    if (y0 === null) return; y0 = null;
+    el.classList.add('anim');
+    if (dist * 0.5 < TH * 0.6){ el.style.opacity = 0; el.style.transform = 'translateY(-30px)'; el.classList.remove('ready'); return; }
+    busy = true; el.classList.remove('ready'); el.classList.add('loading');
+    el.style.transform = 'translateY(14px)'; el.style.opacity = 1;
+    if (navigator.vibrate) navigator.vibrate(10);
+    try{
+      const reg = await navigator.serviceWorker?.getRegistration();
+      await Promise.race([reg?.update(), new Promise(r => setTimeout(r, 2500))]);
+    }catch{}
+    location.reload();
+  });
+})();
 
 // ---------- Start ----------
 applyTheme(S.theme);
