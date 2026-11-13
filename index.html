@@ -2055,27 +2055,33 @@ function loadLeaflet(){
     const sc = document.createElement('script'); sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
   });
 }
-async function initMosques(){
-  $('#mqRadius').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === mqRadius));
-  if (!S.loc){ $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
-  $('#mqList').innerHTML = '<div class="loader"></div>';
+const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
+function fetchJSONTimeout(url, ms, signal){
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms);
+  if (signal) signal.addEventListener('abort', () => ctl.abort());
+  return fetch(url, {signal: ctl.signal}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).finally(() => clearTimeout(tm));
+}
+function anyOf(ps){ // erstes erfolgreiches Ergebnis (Promise.any-Ersatz für ältere iPhones)
+  return new Promise((res, rej) => { let n = ps.length; ps.forEach(p => p.then(res, () => { if (--n === 0) rej(new Error('all failed')); })); });
+}
+let mqReq = 0;
+function mqRenderList(list){
   const {lat, lng: lo} = S.loc;
-  const q = `[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo}););out center 80;`;
-  let data;
-  try{ data = await getJSON([`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`, `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(q)}`]); }
-  catch{ $('#mqList').innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
-  const list = (data.elements || []).map(e => {
-    const la = e.lat ?? e.center?.lat, ln = e.lon ?? e.center?.lon, tg = e.tags || {};
-    const addr = [[tg['addr:street'], tg['addr:housenumber']].filter(Boolean).join(' '), tg['addr:city']].filter(Boolean).join(', ');
-    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln)};
-  }).filter(m => m.la).sort((a, b) => a.d - b.d);
   $('#mqList').innerHTML = list.length ? list.slice(0, 40).map(m => `<div class="item">
       <span class="tile-ic" style="width:38px;height:38px;font-size:18px">🕌</span>
       <div class="main"><b>${esc(m.name)}</b><span class="muted">${m.d < 1 ? Math.round(m.d * 1000) + ' m' : m.d.toFixed(1).replace('.', ',') + ' km'}${m.addr ? ' · ' + esc(m.addr) : ''}</span></div>
       <a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="https://maps.apple.com/?daddr=${m.la},${m.ln}&q=${encodeURIComponent(m.name)}">${S.lang === 'tr' ? 'Yol' : 'Route'}</a></div>`).join('')
-    : `<div class="muted">${t('noMosques')}</div>`;
+    : `<div class="muted" style="padding:6px 0">${t('noMosques')}</div>`;
+}
+function mqAppleLink(){
+  const {lat, lng: lo} = S.loc, q = S.lang === 'tr' ? 'Cami' : 'Moschee';
+  return `<a class="btn" style="text-decoration:none;display:block;text-align:center;margin-top:12px" target="_blank" rel="noopener" href="https://maps.apple.com/?q=${encodeURIComponent(q)}&sll=${lat},${lo}&z=13">🗺️ ${S.lang === 'tr' ? 'Apple Haritalar’da ara' : 'In Apple Karten suchen'}</a>`;
+}
+async function mqDrawMap(list){
+  const {lat, lng: lo} = S.loc;
   try{
     await loadLeaflet();
+    if (current !== 'mosques') return;
     if (!mqMap){
       mqMap = L.map('mqMap', {zoomControl:false, attributionControl:true});
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(mqMap);
@@ -2083,10 +2089,39 @@ async function initMosques(){
     if (mqLayer) mqLayer.remove();
     mqLayer = L.layerGroup().addTo(mqMap);
     L.circleMarker([lat, lo], {radius:8, color:'#fff', weight:3, fillColor:'#3B82F6', fillOpacity:1}).addTo(mqLayer);
-    list.forEach(m => L.circleMarker([m.la, m.ln], {radius:7, color:'#fff', weight:2, fillColor:'#C79A52', fillOpacity:1}).bindPopup(`<b>${esc(m.name)}</b><br>${m.addr ? esc(m.addr) : ''}`).addTo(mqLayer));
+    (list || []).forEach(m => L.circleMarker([m.la, m.ln], {radius:7, color:'#fff', weight:2, fillColor:'#C79A52', fillOpacity:1}).bindPopup(`<b>${esc(m.name)}</b><br>${m.addr ? esc(m.addr) : ''}`).addTo(mqLayer));
     mqMap.setView([lat, lo], mqRadius <= 2000 ? 14 : mqRadius <= 5000 ? 13 : 12);
     setTimeout(() => mqMap.invalidateSize(), 150);
-  }catch{}
+  }catch{ $('#mqMap').innerHTML = ''; }
+}
+async function initMosques(){
+  $('#mqRadius').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === mqRadius));
+  if (!S.loc){ $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
+  const req = ++mqReq, {lat, lng: lo} = S.loc;
+  const ckey = `mq-${lat.toFixed(2)}-${lo.toFixed(2)}-${mqRadius}`, cached = store.get(ckey, null);
+  // 1) sofort: Karte + Zwischenspeicher (falls vorhanden)
+  mqDrawMap(cached?.list);
+  if (cached && Date.now() - cached.at < 7 * 864e5){ mqRenderList(cached.list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink()); return; }
+  $('#mqList').innerHTML = `<div class="loader" style="height:60px"></div><div class="muted center" style="margin-top:8px">${S.lang === 'tr' ? 'Camiler aranıyor …' : 'Moscheen werden gesucht …'}</div>` + mqAppleLink();
+  // 2) alle Server gleichzeitig, erster gewinnt, max. 12 s
+  const q = `[out:json][timeout:10];(node["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo});way["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo}););out center 60;`;
+  const ctl = new AbortController();
+  let data;
+  try{ data = await anyOf(OVERPASS.map(u => fetchJSONTimeout(`${u}?data=${encodeURIComponent(q)}`, 12000, ctl.signal))); ctl.abort(); }
+  catch{
+    if (req !== mqReq) return;
+    $('#mqList').innerHTML = `<div class="muted" style="padding:6px 0">${S.lang === 'tr' ? 'Harita servisi şu an yanıt vermiyor.' : 'Der Kartendienst antwortet gerade nicht.'}</div>` + mqAppleLink();
+    return;
+  }
+  if (req !== mqReq) return;
+  const list = (data.elements || []).map(e => {
+    const la = e.lat ?? e.center?.lat, ln = e.lon ?? e.center?.lon, tg = e.tags || {};
+    const addr = [[tg['addr:street'], tg['addr:housenumber']].filter(Boolean).join(' '), tg['addr:city']].filter(Boolean).join(', ');
+    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln)};
+  }).filter(m => m.la).sort((a, b) => a.d - b.d);
+  store.set(ckey, {at: Date.now(), list});
+  mqRenderList(list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink());
+  mqDrawMap(list);
 }
 $('#mqRadius').querySelectorAll('button').forEach(b => b.onclick = () => { mqRadius = +b.dataset.r; initMosques(); });
 
