@@ -557,14 +557,14 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
         <div class="seg" id="zkCur" style="margin:0;flex:1"><button data-c="EUR">€ EUR</button><button data-c="TRY">₺ TRY</button><button data-c="USD">$ USD</button></div>
       </div>
       <div class="field"><label data-t="zkNisabStd"></label><div class="seg" id="zkStd" style="margin:0"><button data-g="85">85 g</button><button data-g="80.18">80,18 g (Diyanet)</button></div></div>
-      <div class="field"><label><span data-t="zkGoldPrice"></span> <span class="muted" id="zkPriceInfo"></span></label><input id="zkGram" type="number" inputmode="decimal" step="0.01"></div>
+      <div class="field"><label><span data-t="zkGoldPrice"></span> <span class="muted" id="zkPriceInfo"></span></label><input id="zkGram" type="text" inputmode="decimal" autocomplete="off"></div>
       <div class="zk-grid">
-        <div class="field"><label data-t="zkCash"></label><input data-zk="cash" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label data-t="zkGold"></label><input data-zk="goldg" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label data-t="zkSilver"></label><input data-zk="silverv" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label data-t="zkInvest"></label><input data-zk="invest" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label data-t="zkClaims"></label><input data-zk="claims" type="number" inputmode="decimal" placeholder="0"></div>
-        <div class="field"><label data-t="zkDebts"></label><input data-zk="debts" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkCash"></label><input data-zk="cash" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <div class="field"><label data-t="zkGold"></label><input data-zk="goldg" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <div class="field"><label data-t="zkSilver"></label><input data-zk="silverv" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <div class="field"><label data-t="zkInvest"></label><input data-zk="invest" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <div class="field"><label data-t="zkClaims"></label><input data-zk="claims" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
+        <div class="field"><label data-t="zkDebts"></label><input data-zk="debts" type="text" inputmode="decimal" autocomplete="off" placeholder="0"></div>
       </div>
     </div>
     <div class="card hero" id="zkResult"></div>
@@ -2057,38 +2057,79 @@ function renderKhatm(){
   $('#khReset').onclick = () => { if (confirm(t('khatmReset') + '?')){ store.set('khatm', null); renderKhatm(); } };
 }
 
+/* ---------- Netz-Helfer ---------- */
+function fetchJSONTimeout(url, ms, signal){
+  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms);
+  if (signal) signal.addEventListener('abort', () => ctl.abort());
+  return fetch(url, {signal: ctl.signal}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).finally(() => clearTimeout(tm));
+}
+function anyOf(ps){ // erstes erfolgreiches Ergebnis
+  return new Promise((res, rej) => { let n = ps.length; ps.forEach(p => p.then(res, () => { if (--n === 0) rej(new Error('all failed')); })); });
+}
+
 /* ---------- Zakat-Rechner ---------- */
 const ZK = Object.assign({cur: S.lang === 'tr' ? 'TRY' : 'EUR', std: S.lang === 'tr' ? 80.18 : 85, gram: 0, v: {}}, store.get('zk', {}));
 let zkLive = null;
 function zkSave(){ store.set('zk', ZK); }
 const money = v => new Intl.NumberFormat(t('locale'), {style:'currency', currency: ZK.cur, maximumFractionDigits: 2}).format(v || 0);
+const num = x => { let v = String(x ?? '').trim().replace(/\s|€|₺|\$/g, ''); if (v.includes(',')) v = v.replace(/\./g, '').replace(',', '.'); return parseFloat(v) || 0; };
+const fmtNum = v => String(+(+v).toFixed(2)).replace('.', ',');
 async function zkFetchPrice(){
+  const cur = ZK.cur;
   $('#zkPriceInfo').textContent = '…';
+  const T = ms => u => fetchJSONTimeout(u, ms);
+  const sources = [
+    // 1) xaus.com: direkt pro Gramm in Wunschwährung
+    T(9000)(`https://xaus.com/api/v1/spot?currency=${cur}&unit=gram`).then(j => { const p = j?.xau?.price; if (!(p > 0)) throw 0; return p; }),
+    // 2) gold-api.com (USD/Unze) + Wechselkurs
+    (async () => {
+      const g = await T(9000)('https://api.gold-api.com/price/XAU'); if (!(g?.price > 0)) throw 0;
+      let rate = 1;
+      if (cur !== 'USD'){
+        const fx = await anyOf([
+          T(9000)(`https://api.frankfurter.dev/v1/latest?base=USD&symbols=${cur}`).then(j => j.rates[cur]),
+          T(9000)('https://open.er-api.com/v6/latest/USD').then(j => j.rates[cur])
+        ].map(p => p.then(r => { if (!(r > 0)) throw 0; return r; })));
+        rate = fx;
+      }
+      return g.price / 31.1034768 * rate;
+    })()
+  ];
   try{
-    const [g, fx] = await Promise.all([getJSON('https://api.gold-api.com/price/XAU'), ZK.cur === 'USD' ? Promise.resolve({rates:{USD:1}}) : getJSON(`https://api.frankfurter.app/latest?from=USD&to=${ZK.cur}`)]);
-    const perGram = g.price / 31.1034768 * (fx.rates[ZK.cur] || 1);
-    zkLive = {cur: ZK.cur, gram: perGram, at: new Date()};
-    ZK.gram = +perGram.toFixed(2); $('#zkGram').value = ZK.gram; zkSave();
+    const perGram = await anyOf(sources);
+    if (ZK.cur !== cur) return;
+    ZK.gram = +perGram.toFixed(2); ZK.priceAt = Date.now(); ZK.priceCur = cur; zkSave();
+    zkLive = {cur, gram: perGram, at: new Date()};
+    $('#zkGram').value = fmtNum(ZK.gram);
     $('#zkPriceInfo').textContent = t('zkLive', {t: new Date().toLocaleTimeString(t('locale'), {hour:'2-digit', minute:'2-digit'})});
-  }catch{ $('#zkPriceInfo').textContent = t('zkManual'); }
+  }catch{
+    if (ZK.priceCur === cur && ZK.gram){
+      $('#zkPriceInfo').textContent = `(${S.lang === 'tr' ? 'son' : 'zuletzt'} ${new Date(ZK.priceAt || Date.now()).toLocaleDateString(t('locale'))})`;
+    } else { ZK.gram = 0; $('#zkGram').value = ''; $('#zkPriceInfo').textContent = t('zkManual'); }
+  }
   zkCalc();
 }
 function zkCalc(){
-  const v = k => parseFloat(String(ZK.v[k] || 0).replace(',', '.')) || 0, gram = parseFloat(ZK.gram) || 0;
+  const v = k => num(ZK.v[k]), gram = num(ZK.gram);
   const net = v('cash') + v('goldg') * gram + v('silverv') + v('invest') + v('claims') - v('debts');
   const nisab = ZK.std * gram, due = gram > 0 && net >= nisab;
+  if (!gram){
+    $('#zkResult').innerHTML = `<div class="label">${t('zkDue')}</div><div class="muted" style="margin-top:10px">${S.lang === 'tr' ? 'Lütfen yukarıya altının gram fiyatını gir.' : 'Bitte oben den Goldpreis pro Gramm eingeben.'}</div>
+      <div class="row" style="justify-content:center;margin-top:10px"><button class="btn ghost small" onclick="zkFetchPrice()">↻ ${S.lang === 'tr' ? 'Fiyatı yükle' : 'Preis laden'}</button></div>`;
+    return;
+  }
   $('#zkResult').innerHTML = `<div class="label">${t('zkDue')}</div>
     <div class="count" style="font-size:44px;margin-top:6px">${due ? money(net * 0.025) : money(0)}</div>
     <div class="muted" style="margin-top:6px">${due ? '' : t('zkNotDue')}</div>
     <div class="row" style="justify-content:space-around;margin-top:14px">
       <div><div class="muted" style="font-size:12px">${t('zkNet')}</div><b>${money(net)}</b></div>
-      <div><div class="muted" style="font-size:12px">${t('zkNisab')} (${String(ZK.std).replace('.', ',')} g)</div><b>${gram ? money(nisab) : '—'}</b></div></div>`;
+      <div><div class="muted" style="font-size:12px">${t('zkNisab')} (${String(ZK.std).replace('.', ',')} g)</div><b>${money(nisab)}</b></div></div>`;
 }
 function initZakat(){
-  $('#zkCur').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.c === ZK.cur); b.onclick = () => { ZK.cur = b.dataset.c; zkSave(); initZakat(); zkFetchPrice(); }; });
+  $('#zkCur').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.c === ZK.cur); b.onclick = () => { if (ZK.cur === b.dataset.c) return; ZK.cur = b.dataset.c; ZK.gram = 0; zkLive = null; zkSave(); initZakat(); }; });
   $('#zkStd').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.g === ZK.std); b.onclick = () => { ZK.std = +b.dataset.g; zkSave(); initZakat(); }; });
   document.querySelectorAll('[data-zk]').forEach(inp => { inp.value = ZK.v[inp.dataset.zk] || ''; inp.oninput = () => { ZK.v[inp.dataset.zk] = inp.value; zkSave(); zkCalc(); }; });
-  $('#zkGram').value = ZK.gram || ''; $('#zkGram').oninput = e => { ZK.gram = e.target.value; zkSave(); zkCalc(); };
+  $('#zkGram').value = ZK.gram ? fmtNum(num(ZK.gram)) : ''; $('#zkGram').oninput = e => { ZK.gram = e.target.value; ZK.priceCur = ZK.cur; zkSave(); zkCalc(); };
   if (!zkLive || zkLive.cur !== ZK.cur) zkFetchPrice(); else zkCalc();
 }
 
