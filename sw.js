@@ -1,5 +1,6 @@
 // Yüsra – Service Worker: App offline, gelesene Suren/Hadithe/Gebetszeiten aus dem Cache
-const VERSION = 'nur-v24';
+const VERSION = 'nur-v25';
+const DATA = 'yusra-data', OFFLINE = 'yusra-offline'; // bleiben über Updates hinweg erhalten
 const SHELL = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './logo.svg', './data/content.js'];
 
 self.addEventListener('install', e => {
@@ -8,7 +9,7 @@ self.addEventListener('install', e => {
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== VERSION + '-data').map(k => caches.delete(k))))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== VERSION && k !== DATA && k !== OFFLINE).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -35,7 +36,7 @@ self.addEventListener('fetch', e => {
     // APIs: Netzwerk zuerst, offline aus dem Cache
     e.respondWith(
       fetch(req).then(res => {
-        if (res.ok) { const copy = res.clone(); caches.open(VERSION + '-data').then(c => c.put(req, copy)); }
+        if (res.ok) { const copy = res.clone(); caches.open(DATA).then(c => c.put(req, copy)); }
         return res;
       }).catch(() => caches.match(req))
     );

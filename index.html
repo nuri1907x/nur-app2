@@ -300,6 +300,14 @@ nav.tabs button.on{color:var(--gold2);background:var(--hl)}
 #ptr.loading .ptr-ic svg{animation:spin .8s linear infinite}
 #ptr.anim{transition:transform .25s ease, opacity .25s ease}
 
+.searchbar{width:100%;display:flex;align-items:center;gap:10px;padding:13px 16px;margin-bottom:14px;border-radius:16px;background:var(--card);box-shadow:var(--shadow);color:var(--muted);font-size:15.5px;text-align:left}
+.searchbar svg{width:19px;height:19px;flex:none}
+.pstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.pstats div{background:var(--card2);border-radius:14px;padding:10px 4px}
+.pstats b{display:block;font-size:20px;color:var(--gold2)}
+.pstats span{font-size:11.5px;color:var(--muted);font-weight:600}
+main{overflow-wrap:anywhere}
+
 /* ---------- Einstellungen (gruppiert) ---------- */
 .group-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin:18px 6px 8px}
 .group{background:var(--card);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:6px}
@@ -342,6 +350,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
   <!-- HEUTE -->
   <section class="view active" id="v-today">
     <div class="page-head"><div><div class="greet-sub" id="greetDate"></div><h1 class="ptitle" id="greet"></h1></div></div>
+    <button class="searchbar" id="gsOpen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><span data-t="gsPh"></span></button>
     <div class="card hero" id="todayNext"><div class="loader"></div></div>
     <div class="card">
       <div class="row" style="justify-content:space-between"><h2 style="margin:0" data-t="myPrayers"></h2><span class="badge" id="trackCount"></span></div>
@@ -426,6 +435,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
   <section class="view" id="v-hadith">
     <div id="hadithHome">
       <div class="page-head"><div><h1 class="ptitle" data-t="ptHadith"></h1><div class="psub">Ṣaḥīḥ al-Buḫārī</div></div></div>
+      <div class="card hidden" id="hContinue"></div>
       <div class="seg" data-seg="hadith"><button class="on" data-pane="hToday" data-t="segToday"></button><button data-pane="hBooks" data-t="segBooks"></button><button data-pane="hSearch" data-t="segSearch"></button></div>
       <div id="hToday">
       <div class="card hadith" id="hotd"><div class="loader"></div></div>
@@ -618,15 +628,27 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
     <div class="card"><h2 data-t="howItWorks"></h2><p class="muted" style="margin:0" data-t="icsHow"></p></div>
   </section>
 
+  <!-- ZENTRALE SUCHE -->
+  <section class="view" id="v-search">
+    <div class="sticky-top"><form class="row" id="gsForm"><button type="button" class="btn ghost small" id="gsBack">‹</button>
+      <input id="gsQ" data-ph="gsPh" autocomplete="off" enterkeyhint="search"></form></div>
+    <div id="gsRes"></div>
+  </section>
+
   <!-- EINSTELLUNGEN -->
   <section class="view" id="v-settings">
     <div class="page-head"><div><h1 class="ptitle" data-t="settings"></h1></div></div>
+    <div class="group-label" data-t="profile"></div>
+    <div class="group">
+      <div class="gi"><label data-t="yourName"></label><input id="nameIn" data-ph="namePh" autocomplete="given-name" maxlength="30"></div>
+      <div class="gi"><label data-t="language"></label>
+        <div class="seg" id="langSeg" style="margin:0"><button data-v="de">Deutsch</button><button data-v="tr">Türkçe</button></div></div>
+      <div class="gi"><div class="pstats" id="profStats"></div></div>
+    </div>
     <div class="group-label" data-t="appearance"></div>
     <div class="group">
       <div class="gi"><label data-t="design"></label><div class="themes" id="themeGridSet"></div>
         <div class="themes-scale"><span data-t="light"></span><span data-t="dark"></span></div></div>
-      <div class="gi"><label data-t="language"></label>
-        <div class="seg" id="langSeg" style="margin:0"><button data-v="de">Deutsch</button><button data-v="tr">Türkçe</button></div></div>
       <div class="gi"><label data-t="fontSize"></label>
         <input type="range" id="fontRange" min="20" max="42" step="2">
         <div class="ayah" style="border:0;padding-bottom:0"><div class="arabic">بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَّحِيمِ</div></div></div>
@@ -658,6 +680,9 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
           <option value="de">Deutsch</option>
           <option value="en">English</option>
         </select></div></div>
+    <div class="group-label">Offline</div>
+    <div class="group"><div class="gi"><label data-t="offTitle"></label><p class="muted" style="margin:0 0 10px" data-t="offTxt"></p>
+      <button class="btn" id="offBtn" style="width:100%" data-t="offBtn"></button><div class="muted" id="offMsg" style="margin-top:8px"></div></div></div>
     <div class="group-label" data-t="info"></div>
     <div class="group">
       <div class="gi"><label data-t="install"></label><p class="muted" style="margin:0" data-t="installHint"></p></div>
@@ -702,7 +727,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 // ---------- Übersetzungen ----------
 const I18N = {
   de: {
-    tabToday:'Heute', psWidget:'Gebetszeiten auf Home- & Sperrbildschirm', nextPrayerShort:'NÄCHSTES GEBET', widgetPreview:'Vorschau – so sieht das Widget aus (klein & mittel). Es gibt auch eine große Version und Sperrbildschirm-Widgets.', w1:'Scriptable installieren', w1s:'Kostenlose App, mit der man eigene Widgets erstellen kann.', w2:'Skript kopieren', w2s:'Deine Einstellungen (Berechnungsmethode, Sprache, Standort) sind schon eingetragen.', copyScript:'Skript kopieren', w3:'In Scriptable einfügen', w3s:'Scriptable öffnen → oben rechts „+“ → lange ins leere Feld tippen → „Einsetzen“. Oben den Namen auf „Yüsra“ ändern → „Fertig“. Einmal ▶ antippen und den Standortzugriff erlauben.', w4:'Widget hinzufügen', w4s:'Home-Bildschirm lange drücken → oben links „+“ (bzw. „Bearbeiten“ → „Widget hinzufügen“) → Scriptable → Größe wählen → „Widget hinzufügen“.', w5:'Yüsra auswählen', w5s:'Das neue Widget lange drücken → „Widget bearbeiten“ → bei „Script“ „Yüsra“ wählen. Fertig! Für den Sperrbildschirm genauso: Sperrbildschirm lange drücken → „Anpassen“ → Widgets → Scriptable.', wOptions:'Optionen', wOptionsTxt:'Im Feld „Parameter“ des Widgets kannst du eintragen: „tr“ für Türkisch, oder „de;Köln;Germany“ für eine feste Stadt statt GPS. Das Widget aktualisiert sich nach jedem Gebet; der Countdown läuft live mit. Tippt man auf das Widget, öffnet sich Yüsra.', copiedScript:'Skript kopiert ✓ – jetzt in Scriptable einfügen', tabMore:'Mehr', psMore:'Alle Funktionen', playSurah:'Sure', reciter:'Rezitator', psTasbih:'Tippe auf den Kreis zum Zählen', afterPrayer:'Tasbih nach dem Gebet', afterPrayerSub:'33× Subḥānallāh · 33× Al-ḥamdu lillāh · 34× Allāhu akbar', start:'Start', todayTotal:'Heute insgesamt: {n}', adhkarTitle:'Adhkar', psAdhkar:'Morgen- & Abendgedenken', morning:'Morgen', evening:'Abend', psDuas:'Bittgebete für den Alltag', all:'Alle', namesTitle:'99 Namen Allahs', list:'Liste', flashcards:'Lernkarten', tapToFlip:'Tippen zum Umdrehen', next:'Weiter', favs:'Favoriten', psFavs:'Gemerkte Verse & Hadithe', noFavs:'Noch keine Favoriten. Tippe bei einem Vers oder Hadith auf ♡.', khatm:'Khatm-Plan', psKhatm:'Den ganzen Koran in 30 Tagen', khatmStart:'Plan starten', khatmToday:'Heute: Juz {n}', khatmDone:'{n} von 30 Juz gelesen', khatmReset:'Plan neu starten', khatmFinished:'Māšāʾallāh – Khatm abgeschlossen! 🎉', read:'Lesen', mosques:'Moscheen', psMosques:'In deiner Nähe', noMosques:'Keine Moscheen im Umkreis gefunden.', mosque:'Moschee', zakat:'Zakat-Rechner', psZakat:'2,5 % auf zakatpflichtiges Vermögen', zkNisabStd:'Nisab (Gold)', zkGoldPrice:'Goldpreis pro Gramm (24 K)', zkCash:'Bargeld & Konten', zkGold:'Gold (Gramm)', zkGoldK:'Gold nach Karat (Gramm)', zkGoldVal:'Goldwert', zkSilver:'Silber (Wert)', zkInvest:'Aktien & Anlagen', zkClaims:'Forderungen', zkDebts:'Fällige Schulden', zkNote:'Zakat ist fällig, wenn das Vermögen ein volles Mondjahr über dem Nisab lag. Dies ist eine Orientierungshilfe – bei Fragen wende dich an einen Gelehrten. Keine Finanzberatung.', zkDue:'Deine Zakat', zkNotDue:'Unter dem Nisab – keine Zakat fällig', zkNet:'Zakatpflichtiges Vermögen', zkNisab:'Nisab', zkLive:'(live, Stand {t})', zkManual:'(bitte eingeben)', reminders:'Gebets-Erinnerungen', remindersShort:'Gebetszeiten in den iPhone-Kalender', psReminders:'Erinnerungen über den iPhone-Kalender', whichPrayers:'Welche Gebete?', remindBefore:'Erinnerung vorher', howManyDays:'Wie viele Tage?', createCal:'Kalenderdatei erstellen', howItWorks:'So funktioniert’s', icsHow:'Tippe auf „Kalenderdatei erstellen“. Im Teilen-Menü „Kalender“ bzw. die Datei öffnen und „Alle hinzufügen“ wählen. Am besten einen eigenen Kalender „Gebet“ anlegen – so kannst du ihn später einfach löschen und neu importieren.', icsReady:'✓ {n} Termine erstellt', fav:'Merken', myPrayers:'Meine Gebete heute', streakTxt:'🔥 {n} Tage in Folge alle Gebete', streakNone:'Hake deine Gebete ab – Tag für Tag.', votd:'Vers des Tages', until:'bis {p}', at:'um {t}', greetM:'Guten Morgen', greetD:'Guten Tag', greetE:'Guten Abend', jumua:'Dschumʿa Mubārak', copied:'Kopiert ✓', share:'Teilen', open:'Öffnen', continueRead:'Weiterlesen', nextEvent:'Nächster besonderer Tag', startQuran:'Koran beginnen', tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
+    tabToday:'Heute', gsPh:'Koran & Hadithe durchsuchen', gsQuran:'Koran', gsHadith:'Hadith', gsStart:'Suche nach einem Wort (z. B. „Geduld“), einer Sure oder einer Hadith-Nummer.', gsNoHadith:'Die Volltextsuche in Hadithen gibt es mit der deutschen Übersetzung. Mit einer Nummer (1–7563) findest du jeden Hadith direkt.', showAll:'Alle {n} anzeigen', surahsLbl:'Suren', profile:'Profil', yourName:'Dein Name', namePh:'Name', stStreak:'Tage-Serie', stFavs:'Favoriten', stKhatm:'Juz gelesen', bookmark:'Lesezeichen', offTitle:'Offline lesen', offTxt:'Lädt den ganzen Koran (Arabisch + deine Übersetzung), die deutschen Hadithe und die Gebetszeiten für diesen und nächsten Monat auf dein Gerät.', offBtn:'Jetzt herunterladen', offDone:'✓ Offline verfügbar (Stand {d})', offPart:'Teilweise geladen ({a}/{b}) – bitte mit Internet erneut versuchen.', offNo:'Dieser Browser unterstützt das nicht.', psWidget:'Gebetszeiten auf Home- & Sperrbildschirm', nextPrayerShort:'NÄCHSTES GEBET', widgetPreview:'Vorschau – so sieht das Widget aus (klein & mittel). Es gibt auch eine große Version und Sperrbildschirm-Widgets.', w1:'Scriptable installieren', w1s:'Kostenlose App, mit der man eigene Widgets erstellen kann.', w2:'Skript kopieren', w2s:'Deine Einstellungen (Berechnungsmethode, Sprache, Standort) sind schon eingetragen.', copyScript:'Skript kopieren', w3:'In Scriptable einfügen', w3s:'Scriptable öffnen → oben rechts „+“ → lange ins leere Feld tippen → „Einsetzen“. Oben den Namen auf „Yüsra“ ändern → „Fertig“. Einmal ▶ antippen und den Standortzugriff erlauben.', w4:'Widget hinzufügen', w4s:'Home-Bildschirm lange drücken → oben links „+“ (bzw. „Bearbeiten“ → „Widget hinzufügen“) → Scriptable → Größe wählen → „Widget hinzufügen“.', w5:'Yüsra auswählen', w5s:'Das neue Widget lange drücken → „Widget bearbeiten“ → bei „Script“ „Yüsra“ wählen. Fertig! Für den Sperrbildschirm genauso: Sperrbildschirm lange drücken → „Anpassen“ → Widgets → Scriptable.', wOptions:'Optionen', wOptionsTxt:'Im Feld „Parameter“ des Widgets kannst du eintragen: „tr“ für Türkisch, oder „de;Köln;Germany“ für eine feste Stadt statt GPS. Das Widget aktualisiert sich nach jedem Gebet; der Countdown läuft live mit. Tippt man auf das Widget, öffnet sich Yüsra.', copiedScript:'Skript kopiert ✓ – jetzt in Scriptable einfügen', tabMore:'Mehr', psMore:'Alle Funktionen', playSurah:'Sure', reciter:'Rezitator', psTasbih:'Tippe auf den Kreis zum Zählen', afterPrayer:'Tasbih nach dem Gebet', afterPrayerSub:'33× Subḥānallāh · 33× Al-ḥamdu lillāh · 34× Allāhu akbar', start:'Start', todayTotal:'Heute insgesamt: {n}', adhkarTitle:'Adhkar', psAdhkar:'Morgen- & Abendgedenken', morning:'Morgen', evening:'Abend', psDuas:'Bittgebete für den Alltag', all:'Alle', namesTitle:'99 Namen Allahs', list:'Liste', flashcards:'Lernkarten', tapToFlip:'Tippen zum Umdrehen', next:'Weiter', favs:'Favoriten', psFavs:'Gemerkte Verse & Hadithe', noFavs:'Noch keine Favoriten. Tippe bei einem Vers oder Hadith auf ♡.', khatm:'Khatm-Plan', psKhatm:'Den ganzen Koran in 30 Tagen', khatmStart:'Plan starten', khatmToday:'Heute: Juz {n}', khatmDone:'{n} von 30 Juz gelesen', khatmReset:'Plan neu starten', khatmFinished:'Māšāʾallāh – Khatm abgeschlossen! 🎉', read:'Lesen', mosques:'Moscheen', psMosques:'In deiner Nähe', noMosques:'Keine Moscheen im Umkreis gefunden.', mosque:'Moschee', zakat:'Zakat-Rechner', psZakat:'2,5 % auf zakatpflichtiges Vermögen', zkNisabStd:'Nisab (Gold)', zkGoldPrice:'Goldpreis pro Gramm (24 K)', zkCash:'Bargeld & Konten', zkGold:'Gold (Gramm)', zkGoldK:'Gold nach Karat (Gramm)', zkGoldVal:'Goldwert', zkSilver:'Silber (Wert)', zkInvest:'Aktien & Anlagen', zkClaims:'Forderungen', zkDebts:'Fällige Schulden', zkNote:'Zakat ist fällig, wenn das Vermögen ein volles Mondjahr über dem Nisab lag. Dies ist eine Orientierungshilfe – bei Fragen wende dich an einen Gelehrten. Keine Finanzberatung.', zkDue:'Deine Zakat', zkNotDue:'Unter dem Nisab – keine Zakat fällig', zkNet:'Zakatpflichtiges Vermögen', zkNisab:'Nisab', zkLive:'(live, Stand {t})', zkManual:'(bitte eingeben)', reminders:'Gebets-Erinnerungen', remindersShort:'Gebetszeiten in den iPhone-Kalender', psReminders:'Erinnerungen über den iPhone-Kalender', whichPrayers:'Welche Gebete?', remindBefore:'Erinnerung vorher', howManyDays:'Wie viele Tage?', createCal:'Kalenderdatei erstellen', howItWorks:'So funktioniert’s', icsHow:'Tippe auf „Kalenderdatei erstellen“. Im Teilen-Menü „Kalender“ bzw. die Datei öffnen und „Alle hinzufügen“ wählen. Am besten einen eigenen Kalender „Gebet“ anlegen – so kannst du ihn später einfach löschen und neu importieren.', icsReady:'✓ {n} Termine erstellt', fav:'Merken', myPrayers:'Meine Gebete heute', streakTxt:'🔥 {n} Tage in Folge alle Gebete', streakNone:'Hake deine Gebete ab – Tag für Tag.', votd:'Vers des Tages', until:'bis {p}', at:'um {t}', greetM:'Guten Morgen', greetD:'Guten Tag', greetE:'Guten Abend', jumua:'Dschumʿa Mubārak', copied:'Kopiert ✓', share:'Teilen', open:'Öffnen', continueRead:'Weiterlesen', nextEvent:'Nächster besonderer Tag', startQuran:'Koran beginnen', tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
     todayTimes:'Gebetszeiten heute', useLocation:'📍 Standort verwenden', enterCity:'Stadt eingeben',
     city:'Stadt (z. B. Berlin)', country:'Land', save:'Speichern', nextPrayer:'Nächstes Gebet', in:'in',
     qibla:'Qibla-Richtung', startCompass:'Kompass starten', compassHint:'iPhone flach halten, fern von Magneten.',
@@ -731,7 +756,7 @@ const I18N = {
     weekdays:['Mo','Di','Mi','Do','Fr','Sa','So'], locale:'de-DE'
   },
   tr: {
-    tabToday:'Bugün', psWidget:'Ana ekranda & kilit ekranında vakitler', nextPrayerShort:'SIRADAKİ VAKİT', widgetPreview:'Önizleme – widget böyle görünür (küçük & orta). Büyük boy ve kilit ekranı widget’ları da var.', w1:'Scriptable’ı yükle', w1s:'Kendi widget’larını oluşturabileceğin ücretsiz uygulama.', w2:'Betiği kopyala', w2s:'Ayarların (hesaplama yöntemi, dil, konum) zaten içinde.', copyScript:'Betiği kopyala', w3:'Scriptable’a yapıştır', w3s:'Scriptable’ı aç → sağ üstte “+” → boş alana uzun bas → “Yapıştır”. Üstte adı “Yüsra” yap → “Bitti”. Bir kez ▶’ye dokun ve konum iznini ver.', w4:'Widget ekle', w4s:'Ana ekrana uzun bas → sol üstte “+” (veya “Düzenle” → “Widget ekle”) → Scriptable → boyut seç → “Widget ekle”.', w5:'Yüsra’yı seç', w5s:'Yeni widget’a uzun bas → “Widget’ı düzenle” → “Script”te “Yüsra”yı seç. Bitti! Kilit ekranı için: kilit ekranına uzun bas → “Özelleştir” → Widget’lar → Scriptable.', wOptions:'Seçenekler', wOptionsTxt:'Widget’ın “Parameter” alanına “de” (Almanca) veya sabit şehir için “tr;İstanbul;Turkey” yazabilirsin. Widget her vakitten sonra güncellenir; geri sayım canlı işler. Widget’a dokununca Yüsra açılır.', copiedScript:'Betik kopyalandı ✓ – şimdi Scriptable’a yapıştır', tabMore:'Daha fazla', psMore:'Tüm özellikler', playSurah:'Sure', reciter:'Kâri', psTasbih:'Saymak için daireye dokun', afterPrayer:'Namaz sonrası tesbihat', afterPrayerSub:'33× Sübhânallah · 33× Elhamdülillah · 34× Allâhu ekber', start:'Başla', todayTotal:'Bugün toplam: {n}', adhkarTitle:'Ezkâr', psAdhkar:'Sabah & akşam zikirleri', morning:'Sabah', evening:'Akşam', psDuas:'Günlük dualar', all:'Tümü', namesTitle:'Esmâ-i Hüsnâ', list:'Liste', flashcards:'Kartlar', tapToFlip:'Çevirmek için dokun', next:'Sonraki', favs:'Favoriler', psFavs:'Kaydedilen ayet & hadisler', noFavs:'Henüz favori yok. Bir ayet veya hadiste ♡ simgesine dokun.', khatm:'Hatim planı', psKhatm:'30 günde Kur’an-ı Kerim', khatmStart:'Planı başlat', khatmToday:'Bugün: {n}. cüz', khatmDone:'30 cüzden {n} okundu', khatmReset:'Planı yeniden başlat', khatmFinished:'Maşallah – Hatim tamamlandı! 🎉', read:'Oku', mosques:'Camiler', psMosques:'Yakınındaki camiler', noMosques:'Yakında cami bulunamadı.', mosque:'Cami', zakat:'Zekât hesaplama', psZakat:'Zekâta tabi servetin %2,5’i', zkNisabStd:'Nisap (altın)', zkGoldPrice:'Altının gram fiyatı (24 ayar)', zkCash:'Nakit & hesaplar', zkGold:'Altın (gram)', zkGoldK:'Ayara göre altın (gram)', zkGoldVal:'Altın değeri', zkSilver:'Gümüş (değer)', zkInvest:'Hisse & yatırımlar', zkClaims:'Alacaklar', zkDebts:'Vadesi gelmiş borçlar', zkNote:'Servet bir kamerî yıl boyunca nisabın üzerinde kaldıysa zekât farz olur. Bu bir yardımcı hesaptır – sorularınız için bir âlime danışın. Finansal tavsiye değildir.', zkDue:'Zekâtın', zkNotDue:'Nisabın altında – zekât gerekmez', zkNet:'Zekâta tabi servet', zkNisab:'Nisap', zkLive:'(canlı, {t})', zkManual:'(lütfen girin)', reminders:'Namaz hatırlatıcıları', remindersShort:'Namaz vakitlerini iPhone takvimine ekle', psReminders:'iPhone takvimi ile hatırlatma', whichPrayers:'Hangi vakitler?', remindBefore:'Ne kadar önce?', howManyDays:'Kaç gün?', createCal:'Takvim dosyası oluştur', howItWorks:'Nasıl çalışır', icsHow:'“Takvim dosyası oluştur”a dokun. Paylaş menüsünde “Takvim”i seç veya dosyayı aç ve “Tümünü ekle”ye dokun. En iyisi “Namaz” adında ayrı bir takvim oluştur – sonra kolayca silip yeniden ekleyebilirsin.', icsReady:'✓ {n} etkinlik oluşturuldu', fav:'Kaydet', myPrayers:'Bugünkü namazlarım', streakTxt:'🔥 {n} gündür tüm namazlar', streakNone:'Namazlarını işaretle – her gün.', votd:'Günün ayeti', until:'{p} vaktine', at:'{t}', greetM:'Günaydın', greetD:'İyi günler', greetE:'İyi akşamlar', jumua:'Hayırlı Cumalar', copied:'Kopyalandı ✓', share:'Paylaş', open:'Aç', continueRead:'Okumaya devam', nextEvent:'Sıradaki mübarek gün', startQuran:'Kur’an’a başla', tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
+    tabToday:'Bugün', gsPh:'Kur’an ve hadislerde ara', gsQuran:'Kur’an', gsHadith:'Hadis', gsStart:'Bir kelime (örn. “sabır”), sure adı veya hadis numarası ara.', gsNoHadith:'Hadislerde tam metin arama Almanca çeviriyle yapılabilir. Numara (1–7563) ile her hadisi doğrudan bulabilirsin.', showAll:'Tümünü göster ({n})', surahsLbl:'Sureler', profile:'Profil', yourName:'Adın', namePh:'Ad', stStreak:'günlük seri', stFavs:'favori', stKhatm:'cüz okundu', bookmark:'Yer imi', offTitle:'Çevrimdışı oku', offTxt:'Kur’an’ın tamamını (Arapça + mealin), Almanca hadisleri ve bu ay ile gelecek ayın namaz vakitlerini cihazına indirir.', offBtn:'Şimdi indir', offDone:'✓ Çevrimdışı hazır ({d})', offPart:'Kısmen indirildi ({a}/{b}) – lütfen internetle tekrar dene.', offNo:'Bu tarayıcı desteklemiyor.', psWidget:'Ana ekranda & kilit ekranında vakitler', nextPrayerShort:'SIRADAKİ VAKİT', widgetPreview:'Önizleme – widget böyle görünür (küçük & orta). Büyük boy ve kilit ekranı widget’ları da var.', w1:'Scriptable’ı yükle', w1s:'Kendi widget’larını oluşturabileceğin ücretsiz uygulama.', w2:'Betiği kopyala', w2s:'Ayarların (hesaplama yöntemi, dil, konum) zaten içinde.', copyScript:'Betiği kopyala', w3:'Scriptable’a yapıştır', w3s:'Scriptable’ı aç → sağ üstte “+” → boş alana uzun bas → “Yapıştır”. Üstte adı “Yüsra” yap → “Bitti”. Bir kez ▶’ye dokun ve konum iznini ver.', w4:'Widget ekle', w4s:'Ana ekrana uzun bas → sol üstte “+” (veya “Düzenle” → “Widget ekle”) → Scriptable → boyut seç → “Widget ekle”.', w5:'Yüsra’yı seç', w5s:'Yeni widget’a uzun bas → “Widget’ı düzenle” → “Script”te “Yüsra”yı seç. Bitti! Kilit ekranı için: kilit ekranına uzun bas → “Özelleştir” → Widget’lar → Scriptable.', wOptions:'Seçenekler', wOptionsTxt:'Widget’ın “Parameter” alanına “de” (Almanca) veya sabit şehir için “tr;İstanbul;Turkey” yazabilirsin. Widget her vakitten sonra güncellenir; geri sayım canlı işler. Widget’a dokununca Yüsra açılır.', copiedScript:'Betik kopyalandı ✓ – şimdi Scriptable’a yapıştır', tabMore:'Daha fazla', psMore:'Tüm özellikler', playSurah:'Sure', reciter:'Kâri', psTasbih:'Saymak için daireye dokun', afterPrayer:'Namaz sonrası tesbihat', afterPrayerSub:'33× Sübhânallah · 33× Elhamdülillah · 34× Allâhu ekber', start:'Başla', todayTotal:'Bugün toplam: {n}', adhkarTitle:'Ezkâr', psAdhkar:'Sabah & akşam zikirleri', morning:'Sabah', evening:'Akşam', psDuas:'Günlük dualar', all:'Tümü', namesTitle:'Esmâ-i Hüsnâ', list:'Liste', flashcards:'Kartlar', tapToFlip:'Çevirmek için dokun', next:'Sonraki', favs:'Favoriler', psFavs:'Kaydedilen ayet & hadisler', noFavs:'Henüz favori yok. Bir ayet veya hadiste ♡ simgesine dokun.', khatm:'Hatim planı', psKhatm:'30 günde Kur’an-ı Kerim', khatmStart:'Planı başlat', khatmToday:'Bugün: {n}. cüz', khatmDone:'30 cüzden {n} okundu', khatmReset:'Planı yeniden başlat', khatmFinished:'Maşallah – Hatim tamamlandı! 🎉', read:'Oku', mosques:'Camiler', psMosques:'Yakınındaki camiler', noMosques:'Yakında cami bulunamadı.', mosque:'Cami', zakat:'Zekât hesaplama', psZakat:'Zekâta tabi servetin %2,5’i', zkNisabStd:'Nisap (altın)', zkGoldPrice:'Altının gram fiyatı (24 ayar)', zkCash:'Nakit & hesaplar', zkGold:'Altın (gram)', zkGoldK:'Ayara göre altın (gram)', zkGoldVal:'Altın değeri', zkSilver:'Gümüş (değer)', zkInvest:'Hisse & yatırımlar', zkClaims:'Alacaklar', zkDebts:'Vadesi gelmiş borçlar', zkNote:'Servet bir kamerî yıl boyunca nisabın üzerinde kaldıysa zekât farz olur. Bu bir yardımcı hesaptır – sorularınız için bir âlime danışın. Finansal tavsiye değildir.', zkDue:'Zekâtın', zkNotDue:'Nisabın altında – zekât gerekmez', zkNet:'Zekâta tabi servet', zkNisab:'Nisap', zkLive:'(canlı, {t})', zkManual:'(lütfen girin)', reminders:'Namaz hatırlatıcıları', remindersShort:'Namaz vakitlerini iPhone takvimine ekle', psReminders:'iPhone takvimi ile hatırlatma', whichPrayers:'Hangi vakitler?', remindBefore:'Ne kadar önce?', howManyDays:'Kaç gün?', createCal:'Takvim dosyası oluştur', howItWorks:'Nasıl çalışır', icsHow:'“Takvim dosyası oluştur”a dokun. Paylaş menüsünde “Takvim”i seç veya dosyayı aç ve “Tümünü ekle”ye dokun. En iyisi “Namaz” adında ayrı bir takvim oluştur – sonra kolayca silip yeniden ekleyebilirsin.', icsReady:'✓ {n} etkinlik oluşturuldu', fav:'Kaydet', myPrayers:'Bugünkü namazlarım', streakTxt:'🔥 {n} gündür tüm namazlar', streakNone:'Namazlarını işaretle – her gün.', votd:'Günün ayeti', until:'{p} vaktine', at:'{t}', greetM:'Günaydın', greetD:'İyi günler', greetE:'İyi akşamlar', jumua:'Hayırlı Cumalar', copied:'Kopyalandı ✓', share:'Paylaş', open:'Aç', continueRead:'Okumaya devam', nextEvent:'Sıradaki mübarek gün', startQuran:'Kur’an’a başla', tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
     todayTimes:'Bugünün namaz vakitleri', useLocation:'📍 Konumu kullan', enterCity:'Şehir gir',
     city:'Şehir (örn. İstanbul)', country:'Ülke', save:'Kaydet', nextPrayer:'Sonraki vakit', in:'kalan',
     qibla:'Kıble yönü', startCompass:'Pusulayı başlat', compassHint:'Telefonu düz tutun, mıknatıslardan uzak durun.',
@@ -810,6 +835,7 @@ async function getJSON(urls){
     try{ const r = await fetch(u); if (!r.ok) throw new Error(r.status); return await r.json(); }
     catch(e){ last = e; }
   }
+  if ('caches' in window) for (const u of urls){ try{ const hit = await caches.match(u); if (hit) return await hit.json(); }catch{} }
   throw last || new Error('fetch');
 }
 const hadithUrls = path => HADITH_CDN.map(b => b + path);
@@ -897,14 +923,14 @@ function show(view){
   current = view;
   try{ history.replaceState(null, '', view === 'today' ? location.pathname + location.search : '#' + view); store.set('lastView', {h: view, at: Date.now()}); }catch{}
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-'+view));
-  const tab = ['today','prayer','quran','hadith'].includes(view) ? view : (view === 'settings' ? '' : 'more');
+  const tab = ['today','prayer','quran','hadith'].includes(view) ? view : view === 'settings' ? '' : view === 'search' ? 'today' : 'more';
   document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === tab));
   window.scrollTo(0,0);
   if (view === 'quran' && !loaded.quran) initQuran();
   if (view === 'hadith' && !loaded.hadith) initHadith();
   if (view === 'calendar') renderCalendar();
   if (view === 'today') renderToday();
-  const R = {more: renderMore, tasbih: renderTasbih, duas: renderDuas, names: renderNames, favs: renderFavs, khatm: renderKhatm, zakat: initZakat, ics: renderIcs, widget: renderWidget};
+  const R = {more: renderMore, tasbih: renderTasbih, duas: renderDuas, names: renderNames, favs: renderFavs, khatm: renderKhatm, zakat: initZakat, ics: renderIcs, widget: renderWidget, search: renderSearch, settings: renderProfile};
   if (R[view]) R[view]();
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.view));
@@ -932,7 +958,9 @@ async function fetchTimings(){
     store.set('timingsCache', {date:dmy(today), t:timings, tt:timingsTomorrow});
   }catch(e){
     const c = store.get('timingsCache', null);
+    const mc = store.get('monthTimings', {});
     if (c && c.date === dmy(today)){ timings = c.t; timingsTomorrow = c.tt; }
+    else if (mc[dmy(today)]){ timings = mc[dmy(today)]; timingsTomorrow = mc[dmy(tom)] || timings; }
     else { $('#prayerErr').textContent = t('netErr'); }
   }
   renderPrayer();
@@ -986,8 +1014,8 @@ $('#gpsBtn').onclick = () => {
   $('#prayerErr').textContent = '';
   navigator.geolocation.getCurrentPosition(async pos => {
     const lat = +pos.coords.latitude.toFixed(4), lng = +pos.coords.longitude.toFixed(4);
-    S.loc = {lat, lng, label: `${lat.toFixed(2)}, ${lng.toFixed(2)}`};
-    store.set('loc', S.loc); fetchTimings();
+    S.loc = {lat, lng, label: `${lat.toFixed(2)}, ${lng.toFixed(2)}`, gps: true};
+    store.set('loc', S.loc); fetchTimings(); fixPlaceLabel();
   }, () => { $('#prayerErr').textContent = t('locErr'); $('#cityForm').classList.remove('hidden'); },
   {enableHighAccuracy:false, timeout:12000, maximumAge:600000});
 };
@@ -1082,13 +1110,18 @@ function renderSurahList(){
       <div class="arn">${esc(s.name.replace('سُورَةُ ',''))}</div>
     </button>`).join('');
   $('#surahList').querySelectorAll('[data-s]').forEach(b => b.onclick = () => loadSurah(+b.dataset.s));
-  const lr = S.lastRead, cc = $('#continueCard');
+  const lr = resumePos(), bm = S.lastRead, cc = $('#continueCard');
   if (lr && surahs[lr.s-1]){
     cc.classList.remove('hidden');
+    const bmDiff = bm && surahs[bm.s-1] && (bm.s !== lr.s || bm.a !== lr.a);
     cc.innerHTML = `<div class="row" style="justify-content:space-between">
       <div><div class="muted">${t('continue')}</div><b>${esc(surahs[lr.s-1].englishName)}</b> · ${t('verse')} ${lr.a}</div>
-      <button class="btn small" id="contBtn">›</button></div>`;
+      <button class="btn small" id="contBtn">›</button></div>
+      ${bmDiff ? `<div class="row" style="justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)">
+      <div><div class="muted">🔖 ${t('bookmark')}</div><b>${esc(surahs[bm.s-1].englishName)}</b> · ${t('verse')} ${bm.a}</div>
+      <button class="btn ghost small" id="bmBtn">›</button></div>` : ''}`;
     $('#contBtn').onclick = () => loadSurah(lr.s, lr.a);
+    if (bmDiff) $('#bmBtn').onclick = () => loadSurah(bm.s, bm.a);
   } else cc.classList.add('hidden');
 }
 $('#surahSearch').oninput = renderSurahList;
@@ -1101,32 +1134,44 @@ async function getFullQuran(ed){
 }
 const arNorm = x => x.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, '').replace(/[أإآٱ]/g, 'ا').replace(/ى/g, 'ي').replace(/ة/g, 'ه');
 const deNorm = x => x.toLowerCase();
+async function searchQuran(q){
+  const isAr = /[؀-ۿ]/.test(q);
+  const data = await getFullQuran(isAr ? 'quran-simple-clean' : S.trans[S.lang]);
+  const nq = isAr ? arNorm(q) : deNorm(q), res = []; let total = 0;
+  for (const su of data) for (const a of su.ayahs){
+    if ((isAr ? arNorm(a.text) : deNorm(a.text)).includes(nq)){ total++; if (res.length < 60) res.push({s: su.number, name: su.englishName, a: a.numberInSurah, text: a.text}); }
+  }
+  return {res, total, isAr, nq, q};
+}
+function verseHitsHTML(r, from = 0, to = 60){
+  const mark = text => {
+    if (r.isAr) return esc(text);
+    const i = deNorm(text).indexOf(r.nq);
+    return i < 0 ? esc(text) : esc(text.slice(0,i)) + `<mark>${esc(text.slice(i, i+r.q.length))}</mark>` + esc(text.slice(i+r.q.length));
+  };
+  return r.res.slice(from, to).map(x => `
+    <button class="item" data-sv="${x.s}:${x.a}" style="width:100%;text-align:left;display:block;padding:12px 2px;border-bottom:1px solid var(--line)">
+      <span class="badge">${x.s}:${x.a} · ${esc(x.name)}</span>
+      <div style="margin-top:6px;${r.isAr ? 'font-family:var(--ar);font-size:22px;direction:rtl;text-align:right;line-height:1.9' : ''}">${mark(x.text)}</div>
+    </button>`).join('');
+}
+function bindVerseHits(box){
+  box.querySelectorAll('[data-sv]').forEach(b => b.onclick = async () => {
+    const [s2, a2] = b.dataset.sv.split(':').map(Number);
+    if (current !== 'quran') show('quran');
+    if (!surahs.length) await initQuran();
+    loadSurah(s2, a2);
+  });
+}
 $('#verseForm').onsubmit = async e => {
   e.preventDefault();
   const q = $('#verseQ').value.trim(); if (q.length < 2) return;
-  const isAr = /[\u0600-\u06FF]/.test(q);
-  const ed = isAr ? 'quran-simple-clean' : S.trans[S.lang];
   const box = $('#verseRes');
   box.innerHTML = `<p class="muted">${t('loadingQuran')}</p><div class="loader"></div>`;
-  let data;
-  try{ data = await getFullQuran(ed); }catch{ box.innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
-  const nq = isAr ? arNorm(q) : deNorm(q);
-  const res = []; let total = 0;
-  for (const su of data) for (const a of su.ayahs){
-    const txt = isAr ? arNorm(a.text) : deNorm(a.text);
-    if (txt.includes(nq)){ total++; if (res.length < 60) res.push({s: su.number, name: su.englishName, a: a.numberInSurah, text: a.text}); }
-  }
-  const mark = text => {
-    if (isAr) return esc(text);
-    const i = deNorm(text).indexOf(nq);
-    return i < 0 ? esc(text) : esc(text.slice(0,i)) + `<mark>${esc(text.slice(i, i+q.length))}</mark>` + esc(text.slice(i+q.length));
-  };
-  box.innerHTML = `<p class="muted">${total > res.length ? t('firstHits',{n:res.length}) + ' · ' : ''}${total} ${t('hits')}</p>` + res.map(r => `
-    <button class="item" data-sv="${r.s}:${r.a}" style="width:100%;text-align:left;display:block;padding:12px 2px;border-bottom:1px solid var(--line)">
-      <span class="badge">${r.s}:${r.a} · ${esc(r.name)}</span>
-      <div style="margin-top:6px;${isAr ? 'font-family:var(--ar);font-size:22px;direction:rtl;text-align:right;line-height:1.9' : ''}">${mark(r.text)}</div>
-    </button>`).join('');
-  box.querySelectorAll('[data-sv]').forEach(b => b.onclick = () => { const [s2, a2] = b.dataset.sv.split(':').map(Number); loadSurah(s2, a2); });
+  let r;
+  try{ r = await searchQuran(q); }catch{ box.innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
+  box.innerHTML = `<p class="muted">${r.total > r.res.length ? t('firstHits',{n:r.res.length}) + ' · ' : ''}${r.total} ${t('hits')}</p>` + verseHitsHTML(r);
+  bindVerseHits(box);
 };
 
 async function loadSurah(n, scrollTo){
@@ -1138,7 +1183,13 @@ async function loadSurah(n, scrollTo){
   const ed = S.trans[S.lang];
   let data;
   try{ data = (await getJSON(`https://api.alquran.cloud/v1/surah/${n}/editions/quran-uthmani,${ed}`)).data; }
-  catch{ $('#surahBody').innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
+  catch{
+    try{ // offline: aus dem heruntergeladenen Gesamt-Koran
+      const [A, B] = await Promise.all([getFullQuran('quran-uthmani'), getFullQuran(ed)]);
+      const mk = x => ({...x[n-1], numberOfAyahs: x[n-1].ayahs.length});
+      data = [mk(A), mk(B)];
+    }catch{ $('#surahBody').innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
+  }
   const [ar, tr] = data, info = surahs[n-1] || ar;
   const showBism = n !== 1 && n !== 9;
   const html = ar.ayahs.map((a, i) => {
@@ -1227,7 +1278,7 @@ function hadithCard(h, ar, fallback){
 
 async function initHadith(){
   loaded.hadith = true;
-  autoHadithLang(); await loadDE(); deStatus();
+  autoHadithLang(); await loadDE(); deStatus(); renderHContinue();
   $('#deSearchCard').classList.toggle('hidden', !useDE());
   // Hadith des Tages
   const doy = daysBetween(new Date(new Date().getFullYear(),0,1), new Date());
@@ -1578,6 +1629,7 @@ async function loadDE(){
   const recs = await Promise.all(Array.from({length:9}, async (_, i) => {
     const k = i + 1;
     try{ const r = await fetch(`data/de/band-${k}.json`); if (r.ok) return [k, await r.json()]; }catch{}
+    try{ const hit = await caches.match(`data/de/band-${k}.json`); if (hit) return [k, await hit.json()]; }catch{}
     try{ const rec = await idbParsed.get(k); if (rec && rec.v === PARSE_V) return [k, rec]; }catch{}
     return [k, null];
   }));
@@ -1668,8 +1720,8 @@ function deFind(n){
   if (DE.byNum.has(n)) return DE.byNum.get(n);
   return null;
 }
-async function openDeBook(i){
-  const book = DE.books[i];
+async function openDeBook(i, resumeN){
+  const book = DE.books[i]; curDeBook = i;
   $('#hadithHome').classList.add('hidden'); $('#hadithBook').classList.remove('hidden'); window.scrollTo(0,0);
   const blocks = [];
   book.chapters.forEach(c => { blocks.push({c}); c.hadiths.forEach(h => blocks.push({h, c})); });
@@ -1686,6 +1738,24 @@ async function openDeBook(i){
     shown += 40; $('#hMore').classList.toggle('hidden', shown >= blocks.length);
   };
   $('#hMore').onclick = more; more();
+  if (resumeN){
+    while (shown < blocks.length && !blocks.slice(0, shown).some(b => b.h && b.h.n === resumeN)) more();
+    setTimeout(() => { const el = $('#hList').querySelector(`[data-ar="${resumeN}"]`)?.closest('.card'); if (el) window.scrollTo(0, el.getBoundingClientRect().top + window.scrollY - 130); }, 120);
+  }
+}
+let curDeBook = null;
+function renderHContinue(){
+  const hp = store.get('hadithPos', null), box = $('#hContinue');
+  if (!hp || !useDE() || !DE.books[hp.i]){ box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  box.innerHTML = `<div class="row" style="justify-content:space-between"><div style="min-width:0"><div class="muted">${t('continue')}</div>
+    <b>${esc(DE.books[hp.i].title)}</b> · Nr. ${hp.n}</div><button class="btn small" id="hContBtn">›</button></div>`;
+  $('#hContBtn').onclick = () => openDeBook(hp.i, hp.n);
+}
+function searchHadithDE(q, limit = 30){
+  const lq = q.toLowerCase(), res = []; let total = 0;
+  for (const n of DE.nums){ const en = DE.byNum.get(n); if (en.h.n === n && en.h.text.toLowerCase().includes(lq)){ total++; if (res.length < limit) res.push(en); } }
+  return {res, total};
 }
 $('#deSearchForm').onsubmit = e => {
   e.preventDefault();
@@ -1823,7 +1893,7 @@ function renderTiles(){
   if (!$('#tiles')) return;
   const now = new Date(), h = hijri(now);
   const q = S.loc ? Math.round(qiblaBearing(S.loc.lat, S.loc.lng)) + '°' : '—';
-  const lr = S.lastRead, sname = lr && surahs[lr.s-1] ? surahs[lr.s-1].englishName : null;
+  const lr = resumePos(), sname = lr && surahs[lr.s-1] ? surahs[lr.s-1].englishName : null;
   const ev = upcomingEvents(dayStart(now), 400).find(e => daysBetween(now, e.date) >= 0);
   let ram;
   if (h.m === 9) ram = {v: t('ramadanDay', {d: h.d}), l: t('ramadan')};
@@ -1867,7 +1937,8 @@ async function renderTodayHadith(){
 }
 function renderToday(){
   const now = new Date(), hr = now.getHours();
-  $('#greet').textContent = now.getDay() === 5 ? t('jumua') : hr < 11 ? t('greetM') : hr < 17 ? t('greetD') : t('greetE');
+  const nm = (store.get('name', '') || '').trim();
+  $('#greet').textContent = (now.getDay() === 5 ? t('jumua') : hr < 11 ? t('greetM') : hr < 17 ? t('greetD') : t('greetE')) + (nm ? ', ' + nm : '');
   $('#greetDate').textContent = fmtDate(now, {weekday:'long', day:'numeric', month:'long'}) + ' · ' + hijriStr(hijri(now));
   renderTracker(); renderTiles();
 }
@@ -2254,6 +2325,143 @@ $('#icsGo').onclick = async () => {
   });
 })();
 
+/* =========================================================
+   Zentrale Suche · Profil · Lesefortschritt · Standort · Offline
+   ========================================================= */
+S.autoRead = store.get('autoRead', null);
+function resumePos(){ return S.autoRead || S.lastRead || null; }
+
+// ---------- Zentrale Suche ----------
+let gsTok = 0, gsTimer = null;
+function renderSearch(){
+  const inp = $('#gsQ');
+  if (!inp.value && !$('#gsRes').innerHTML) $('#gsRes').innerHTML = `<div class="card muted center" style="padding:26px 18px">${t('gsStart')}</div>`;
+  setTimeout(() => inp.focus(), 60);
+}
+async function runSearch(){
+  const q = $('#gsQ').value.trim(), box = $('#gsRes'), tok = ++gsTok;
+  if (q.length < 2 && !/^\d+$/.test(q)){ box.innerHTML = `<div class="card muted center" style="padding:26px 18px">${t('gsStart')}</div>`; return; }
+  box.innerHTML = '<div class="card"><div class="loader"></div></div>';
+  autoHadithLang();
+  const isNum = /^\d+$/.test(q);
+  const [qr] = await Promise.all([isNum ? null : searchQuran(q).catch(() => 'err'), loadDE().catch(() => {}), surahs.length ? null : initQuran().catch(() => {})]);
+  if (tok !== gsTok) return;
+  let html = '';
+  // Suren (Name oder Nummer)
+  const lq = q.toLowerCase();
+  const sur = surahs.filter(x => String(x.number) === q || x.englishName.toLowerCase().includes(lq) || x.englishNameTranslation.toLowerCase().includes(lq) || x.name.includes(q)).slice(0, 5);
+  if (sur.length) html += `<div class="group-label">${t('surahsLbl')}</div><div class="card list">` + sur.map(x => `<button class="item" style="width:100%;text-align:left" data-gs-s="${x.number}">
+      <div class="num"><span>${x.number}</span></div><div class="main"><b>${esc(x.englishName)}</b><span class="muted">${x.numberOfAyahs} ${t('verses')}</span></div><div class="arn">${esc(x.name.replace('سُورَةُ ',''))}</div></button>`).join('') + '</div>';
+  // Koran-Verse
+  if (!isNum){
+    html += `<div class="group-label">${t('gsQuran')}${qr && qr !== 'err' ? ' · ' + qr.total + ' ' + t('hits') : ''}</div>`;
+    if (qr === 'err') html += `<div class="card err">${t('netErr')}</div>`;
+    else if (!qr.total) html += `<div class="card muted">${S.lang === 'tr' ? 'Sonuç yok.' : 'Keine Treffer.'}</div>`;
+    else html += `<div class="card"><div id="gsV1">${verseHitsHTML(qr, 0, 8)}</div><div id="gsV2" class="hidden">${verseHitsHTML(qr, 8, 60)}</div>
+      ${qr.res.length > 8 ? `<button class="btn ghost small" id="gsMoreV" style="margin-top:12px;width:100%">${t('showAll', {n: qr.res.length})}</button>` : ''}</div>`;
+  }
+  // Hadithe
+  html += `<div class="group-label">${t('gsHadith')}<span id="gsHCount"></span></div><div id="gsH"></div>`;
+  box.innerHTML = html;
+  bindVerseHits(box);
+  box.querySelectorAll('[data-gs-s]').forEach(b => b.onclick = async () => { show('quran'); if (!surahs.length) await initQuran(); loadSurah(+b.dataset.gsS); });
+  const mv = $('#gsMoreV'); if (mv) mv.onclick = () => { $('#gsV2').classList.remove('hidden'); mv.remove(); };
+  const hb = $('#gsH');
+  if (isNum){
+    if (+q >= 1 && +q <= 7563){ hb.innerHTML = '<div class="card hadith"></div>'; showHadithNum(+q, hb.firstElementChild); }
+    else hb.innerHTML = `<div class="card muted">${t('gsNoHadith')}</div>`;
+  } else if (useDE()){
+    const hr = searchHadithDE(q, 30);
+    $('#gsHCount').textContent = ' · ' + hr.total + ' ' + t('hits');
+    hb.innerHTML = hr.total ? hr.res.slice(0, 5).map(en => deCard(en)).join('') +
+      (hr.res.length > 5 ? `<div id="gsH2" class="hidden">${hr.res.slice(5).map(en => deCard(en)).join('')}</div><button class="btn ghost small" id="gsMoreH" style="width:100%;margin-bottom:14px">${t('showAll', {n: hr.res.length})}</button>` : '')
+      : `<div class="card muted">${S.lang === 'tr' ? 'Sonuç yok.' : 'Keine Treffer.'}</div>`;
+    bindArabic(hb);
+    const mh = $('#gsMoreH'); if (mh) mh.onclick = () => { $('#gsH2').classList.remove('hidden'); mh.remove(); };
+  } else hb.innerHTML = `<div class="card muted">${t('gsNoHadith')}</div>`;
+}
+$('#gsOpen').onclick = () => show('search');
+$('#gsBack').onclick = () => show('today');
+$('#gsForm').onsubmit = e => { e.preventDefault(); clearTimeout(gsTimer); $('#gsQ').blur(); runSearch(); };
+$('#gsQ').oninput = () => { clearTimeout(gsTimer); gsTimer = setTimeout(runSearch, 600); };
+
+// ---------- Profil ----------
+function renderProfile(){
+  $('#nameIn').value = store.get('name', '');
+  const kh = store.get('khatm', null);
+  $('#profStats').innerHTML = `<div><b>${streakDays()}</b><span>${t('stStreak')}</span></div><div><b>${favs().length}</b><span>${t('stFavs')}</span></div><div><b>${kh ? kh.done.length : 0}/30</b><span>${t('stKhatm')}</span></div>`;
+  const off = store.get('offline', null);
+  $('#offMsg').textContent = off ? t('offDone', {d: new Date(off.at).toLocaleDateString(t('locale'))}) : '';
+}
+$('#nameIn').oninput = e => { store.set('name', e.target.value.trim()); };
+
+// ---------- Lesefortschritt automatisch merken ----------
+let progT = 0;
+window.addEventListener('scroll', () => {
+  const now = Date.now(); if (now - progT < 500) return; progT = now;
+  if (current === 'quran' && openSurah && !$('#quranReader').classList.contains('hidden')){
+    const el = [...document.querySelectorAll('#surahBody .ayah')].find(x => x.getBoundingClientRect().bottom > 170);
+    if (el){ S.autoRead = {s: openSurah, a: +el.id.slice(5), at: now}; store.set('autoRead', S.autoRead); }
+  } else if (current === 'hadith' && curDeBook !== null && !$('#hadithBook').classList.contains('hidden')){
+    const el = [...document.querySelectorAll('#hList [data-ar]')].find(x => x.getBoundingClientRect().bottom > 170);
+    if (el) store.set('hadithPos', {i: curDeBook, n: +el.dataset.ar, at: now});
+  }
+}, {passive: true});
+$('#backBook').addEventListener('click', () => { curDeBook = null; renderHContinue(); });
+
+// ---------- Standort: Ortsname & automatische Aktualisierung ----------
+async function fixPlaceLabel(){
+  if (!S.loc || !/^-?\d+\.\d+, /.test(S.loc.label)) return;
+  try{
+    const j = await fetchJSONTimeout(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${S.loc.lat}&longitude=${S.loc.lng}&localityLanguage=${S.lang === 'tr' ? 'tr' : 'de'}`, 7000);
+    const name = j.city || j.locality || j.principalSubdivision;
+    if (name){ S.loc.label = name; S.loc.gps = true; store.set('loc', S.loc); $('#locLabel').textContent = '📍 ' + name; }
+  }catch{}
+}
+async function autoLocate(){
+  if (!S.loc || !navigator.geolocation) return;
+  const wasGps = S.loc.gps || /^-?\d+\.\d+, /.test(S.loc.label);
+  fixPlaceLabel();
+  if (!wasGps) return;
+  try{ if (navigator.permissions){ const p = await navigator.permissions.query({name: 'geolocation'}); if (p.state !== 'granted') return; } else return; }catch{ return; }
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = +pos.coords.latitude.toFixed(4), lng = +pos.coords.longitude.toFixed(4);
+    const km = Math.hypot((lat - S.loc.lat) * 111, (lng - S.loc.lng) * 111 * Math.cos(rad(lat)));
+    if (km < 3) return;
+    S.loc = {lat, lng, label: `${lat.toFixed(2)}, ${lng.toFixed(2)}`, gps: true};
+    store.set('loc', S.loc); fetchTimings(); fixPlaceLabel();
+  }, () => {}, {enableHighAccuracy: false, timeout: 10000, maximumAge: 600000});
+}
+
+// ---------- Offline herunterladen ----------
+$('#offBtn').onclick = async () => {
+  const btn = $('#offBtn'), msg = $('#offMsg');
+  if (!('caches' in window)){ msg.textContent = t('offNo'); return; }
+  btn.disabled = true; btn.style.opacity = .6;
+  const ed = S.trans[S.lang], Q = 'https://api.alquran.cloud/v1/';
+  const urls = [Q + 'surah', Q + 'quran/quran-uthmani', Q + 'quran/' + ed, Q + 'quran/quran-simple-clean', ...Array.from({length: 9}, (_, i) => `data/de/band-${i+1}.json`)];
+  const total = urls.length + (S.loc ? 1 : 0); let ok = 0, done = 0;
+  const cache = await caches.open('yusra-offline');
+  for (const u of urls){
+    msg.textContent = `⏳ ${++done}/${total}`;
+    try{ const r = await fetch(u); if (!r.ok) throw 0; await cache.put(u, r.clone()); ok++; }catch{}
+  }
+  if (S.loc){
+    msg.textContent = `⏳ ${++done}/${total}`;
+    try{
+      const now = new Date(), nx = new Date(now.getFullYear(), now.getMonth() + 1, 1), mc = {};
+      for (const d of [now, nx]){
+        const r = await getJSON(`https://api.aladhan.com/v1/calendar/${d.getFullYear()}/${d.getMonth() + 1}?latitude=${S.loc.lat}&longitude=${S.loc.lng}&method=${S.method}`);
+        r.data.forEach(x => { mc[x.date.gregorian.date] = x.timings; });
+      }
+      store.set('monthTimings', mc); ok++;
+    }catch{}
+  }
+  btn.disabled = false; btn.style.opacity = 1;
+  if (ok === total){ store.set('offline', {at: Date.now(), ed}); msg.textContent = t('offDone', {d: new Date().toLocaleDateString(t('locale'))}); }
+  else msg.textContent = t('offPart', {a: ok, b: total});
+};
+
 // ---------- Start ----------
 applyTheme(S.theme);
 applyFont();
@@ -2270,7 +2478,7 @@ renderToday(); renderVotd(); renderTodayHadith();
   show(v);
   if (v === 'quran' && +arg){ if (!surahs.length || !loaded.quran) await initQuran(); loadSurah(+arg); }
 })();
-if (!S.loc) $('#gpsBtn').click();
+if (!S.loc) $('#gpsBtn').click(); else autoLocate();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible'){
     const c = store.get('timingsCache', null);
