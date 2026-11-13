@@ -110,7 +110,38 @@ main{padding:6px 16px 24px;max-width:720px;margin:0 auto}
 .btn.small{padding:8px 13px;font-size:13.5px;border-radius:11px}
 
 /* ---------- Gebet ---------- */
-.hero{text-align:center;padding:26px 20px 22px;background:radial-gradient(130% 100% at 50% -10%, var(--hero1) 0%, var(--hero2) 65%);position:relative;overflow:hidden}
+.hero{text-align:center;padding:24px 20px 24px;background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%23D6AE68' stroke-opacity='.10' stroke-width='1'%3E%3Cpath d='M28 6l6.4 15.6L50 28l-15.6 6.4L28 50l-6.4-15.6L6 28l15.6-6.4z'/%3E%3Crect x='17' y='17' width='22' height='22' transform='rotate(45 28 28)'/%3E%3Ccircle cx='28' cy='28' r='5'/%3E%3C/g%3E%3C/svg%3E") center/56px 56px, radial-gradient(130% 100% at 50% -10%, var(--hero1) 0%, var(--hero2) 70%);position:relative;overflow:hidden;border:1px solid var(--line)}
+.ringwrap{position:relative;width:208px;height:208px;margin:14px auto 4px}
+.ring{width:100%;height:100%;transform:rotate(-90deg)}
+.ring circle{fill:none;stroke-width:5}
+.ring .trk{stroke:var(--card2)}
+.ring .prg{stroke:url(#ringGrad);stroke-linecap:round;transition:stroke-dashoffset .6s ease}
+.ringin{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ringin .count{margin:0!important;font-size:38px!important}
+.ringin .lbl{font-size:12.5px;color:var(--muted);margin-top:2px}
+.greet-sub{font-size:13px;color:var(--gold2);font-weight:600;letter-spacing:.2px}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.tile{background:var(--card);border-radius:22px;padding:15px;box-shadow:var(--shadow);text-align:left;display:flex;flex-direction:column;gap:10px;min-height:120px;transition:transform .12s}
+.tile:active{transform:scale(.97)}
+.tile .ti{width:36px;height:36px;border-radius:12px;background:var(--hl);color:var(--gold2);display:grid;place-items:center}
+.tile .ti svg{width:19px;height:19px}
+.tile .tv{font-size:19px;font-weight:700;line-height:1.2;margin-top:auto}
+.tile .tl{font-size:12.5px;color:var(--muted);font-weight:600}
+.ptrack{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:12px}
+.pt{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 0 9px;border-radius:16px;background:var(--card2);font-size:11.5px;font-weight:600;color:var(--muted);transition:background .2s,color .2s,transform .12s}
+.pt:active{transform:scale(.95)}
+.pt .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center}
+.pt .ck svg{width:14px;height:14px;opacity:0}
+.pt.on{background:var(--hl);color:var(--gold2)}
+.pt.on .ck{background:var(--gold);border-color:var(--gold);color:var(--onaccent)}
+.pt.on .ck svg{opacity:1}
+.ib{width:36px;height:36px;border-radius:12px;background:var(--card2);color:var(--muted);display:inline-grid;place-items:center;flex:none;transition:transform .12s,color .15s}
+.ib:active{transform:scale(.92)}
+.ib svg{width:18px;height:18px}
+.ib.on{color:var(--gold2);background:var(--hl)}
+.toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:60;animation:pop .2s ease}
+.votd .arabic{font-family:var(--ar);font-size:26px;line-height:2;direction:rtl;text-align:right}
+.votd .tr{margin-top:8px;line-height:1.65;opacity:.9}
 .hero::after{content:'';position:absolute;inset:auto -40px -60px auto;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,var(--hl),transparent 70%);pointer-events:none}
 .hero .label{color:var(--muted);font-size:11.5px;text-transform:uppercase;letter-spacing:1.8px;font-weight:700}
 .hero .name{font-family:var(--serif);font-size:40px;font-weight:700;margin:6px 0 0;line-height:1.1}
@@ -195,8 +226,8 @@ main{padding:6px 16px 24px;max-width:720px;margin:0 auto}
 .ev:last-child{border-bottom:0}
 .ev .when{text-align:right;font-size:13px;color:var(--gold2);white-space:nowrap;font-weight:700}
 
-.loader{display:flex;justify-content:center;padding:30px}
-.loader::after{content:'';width:26px;height:26px;border:2.5px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .9s linear infinite}
+.loader{height:92px;border-radius:16px;margin:4px 0;background:linear-gradient(100deg,var(--card2) 30%,var(--line) 50%,var(--card2) 70%);background-size:300% 100%;animation:shimmer 1.3s ease-in-out infinite}
+@keyframes shimmer{from{background-position:100% 0}to{background-position:0 0}}
 @keyframes spin{to{transform:rotate(360deg)}}
 .err{color:var(--danger);font-size:14px;padding:8px 0}
 
@@ -246,7 +277,22 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 
 <main>
   <!-- GEBET -->
-  <section class="view active" id="v-prayer">
+  <svg width="0" height="0" style="position:absolute"><defs><linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F3D9A0"/><stop offset="1" stop-color="#C79A52"/></linearGradient></defs></svg>
+  <!-- HEUTE -->
+  <section class="view active" id="v-today">
+    <div class="page-head"><div><div class="greet-sub" id="greetDate"></div><h1 class="ptitle" id="greet"></h1></div></div>
+    <div class="card hero" id="todayNext"><div class="loader"></div></div>
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><h2 style="margin:0" data-t="myPrayers"></h2><span class="badge" id="trackCount"></span></div>
+      <div class="ptrack" id="ptrack"></div>
+      <div class="muted" id="streak" style="margin-top:10px"></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="card votd" id="votd"><div class="loader"></div></div>
+    <div class="card hadith" id="todayHadith"><div class="loader"></div></div>
+  </section>
+
+  <section class="view" id="v-prayer">
     <div class="page-head"><div><h1 class="ptitle" data-t="ptPrayer"></h1><div class="psub" id="locLabel"></div></div></div>
     <div class="card hero" id="nextCard"><div class="loader"></div></div>
     <div class="card">
@@ -440,7 +486,8 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 </div>
 
 <nav class="tabs">
-  <button data-view="prayer" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c-2 2-5 3-5 7v10h10V10c0-4-3-5-5-7z"/><path d="M4 20h16M10 20v-4a2 2 0 0 1 4 0v4"/></svg><span data-t="tabPrayer"></span></button>
+  <button data-view="today" class="on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11.5 12 4l9 7.5"/><path d="M5.5 10v9.5h13V10"/><path d="M12 13.2l1 2 2.2.3-1.6 1.5.4 2.2-2-1-2 1 .4-2.2-1.6-1.5 2.2-.3z"/></svg><span data-t="tabToday"></span></button>
+  <button data-view="prayer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c-2 2-5 3-5 7v10h10V10c0-4-3-5-5-7z"/><path d="M4 20h16M10 20v-4a2 2 0 0 1 4 0v4"/></svg><span data-t="tabPrayer"></span></button>
   <button data-view="quran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 8h6M9 12h6"/></svg><span data-t="tabQuran"></span></button>
   <button data-view="hadith"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h10l6 6v10H4z"/><path d="M14 4v6h6M8 14h8M8 17h5"/></svg><span data-t="tabHadith"></span></button>
   <button data-view="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span data-t="tabCalendar"></span></button>
@@ -456,7 +503,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 // ---------- Übersetzungen ----------
 const I18N = {
   de: {
-    tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
+    tabToday:'Heute', myPrayers:'Meine Gebete heute', streakTxt:'🔥 {n} Tage in Folge alle Gebete', streakNone:'Hake deine Gebete ab – Tag für Tag.', votd:'Vers des Tages', until:'bis {p}', at:'um {t}', greetM:'Guten Morgen', greetD:'Guten Tag', greetE:'Guten Abend', jumua:'Dschumʿa Mubārak', copied:'Kopiert ✓', share:'Teilen', open:'Öffnen', continueRead:'Weiterlesen', nextEvent:'Nächster besonderer Tag', startQuran:'Koran beginnen', tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
     todayTimes:'Gebetszeiten heute', useLocation:'📍 Standort verwenden', enterCity:'Stadt eingeben',
     city:'Stadt (z. B. Berlin)', country:'Land', save:'Speichern', nextPrayer:'Nächstes Gebet', in:'in',
     qibla:'Qibla-Richtung', startCompass:'Kompass starten', compassHint:'iPhone flach halten, fern von Magneten.',
@@ -485,7 +532,7 @@ const I18N = {
     weekdays:['Mo','Di','Mi','Do','Fr','Sa','So'], locale:'de-DE'
   },
   tr: {
-    tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
+    tabToday:'Bugün', myPrayers:'Bugünkü namazlarım', streakTxt:'🔥 {n} gündür tüm namazlar', streakNone:'Namazlarını işaretle – her gün.', votd:'Günün ayeti', until:'{p} vaktine', at:'{t}', greetM:'Günaydın', greetD:'İyi günler', greetE:'İyi akşamlar', jumua:'Hayırlı Cumalar', copied:'Kopyalandı ✓', share:'Paylaş', open:'Aç', continueRead:'Okumaya devam', nextEvent:'Sıradaki mübarek gün', startQuran:'Kur’an’a başla', tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
     todayTimes:'Bugünün namaz vakitleri', useLocation:'📍 Konumu kullan', enterCity:'Şehir gir',
     city:'Şehir (örn. İstanbul)', country:'Ülke', save:'Kaydet', nextPrayer:'Sonraki vakit', in:'kalan',
     qibla:'Kıble yönü', startCompass:'Pusulayı başlat', compassHint:'Telefonu düz tutun, mıknatıslardan uzak durun.',
@@ -604,7 +651,7 @@ function applyLang(){
 }
 function setLang(l){
   S.lang = l; store.set('lang', l); autoHadithLang(); applyLang();
-  renderPrayer(); renderSurahList(); renderCalendar(); loaded.hadith = false;
+  renderPrayer(); renderSurahList(); renderCalendar(); renderToday(); renderVotd(); renderTodayHadith(); loaded.hadith = false;
   if (current === 'hadith') initHadith();
   if (!$('#quranReader').classList.contains('hidden') && openSurah) loadSurah(openSurah);
 }
@@ -644,7 +691,7 @@ document.querySelectorAll('.seg[data-seg]').forEach(seg => seg.querySelectorAll(
 }));
 
 // ---------- Navigation ----------
-let current = 'prayer';
+let current = 'today';
 const loaded = {};
 function show(view){
   current = view;
@@ -654,9 +701,10 @@ function show(view){
   if (view === 'quran' && !loaded.quran) initQuran();
   if (view === 'hadith' && !loaded.hadith) initHadith();
   if (view === 'calendar') renderCalendar();
+  if (view === 'today') renderToday();
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.view));
-$('#setBtn').onclick = () => show(current === 'settings' ? 'prayer' : 'settings');
+$('#setBtn').onclick = () => show(current === 'settings' ? 'today' : 'settings');
 $('#langBtn').onclick = () => setLang(S.lang === 'de' ? 'tr' : 'de');
 
 /* =========================================================
@@ -668,7 +716,7 @@ const toDate = (hm, base) => { const [h,m] = hm.slice(0,5).split(':').map(Number
 
 async function fetchTimings(){
   $('#prayerErr').textContent = '';
-  if (!S.loc){ $('#nextCard').innerHTML = `<div class="muted">${t('noLoc')}</div>`; $('#timesList').innerHTML=''; return; }
+  if (!S.loc){ setHero(`<div class="muted" style="padding:10px 0">${t('noLoc')}</div><button class="btn small" style="margin-top:10px" onclick="show('prayer')">📍 ${t('useLocation').replace('📍 ','')}</button>`); $('#timesList').innerHTML=''; return; }
   const q = `latitude=${S.loc.lat}&longitude=${S.loc.lng}&method=${S.method}`;
   const today = new Date(), tom = addDays(today,1);
   try{
@@ -696,7 +744,7 @@ function nextPrayer(){
 
 function renderPrayer(){
   $('#locLabel').textContent = S.loc ? '📍 ' + S.loc.label : '';
-  if (!timings){ if (S.loc) $('#nextCard').innerHTML = '<div class="loader"></div>'; renderQibla(); return; }
+  if (!timings){ if (S.loc) setHero('<div class="loader"></div>'); renderQibla(); return; }
   const np = nextPrayer(), now = new Date(), P = I18N[S.lang].prayers;
   $('#timesList').innerHTML = PRAYER_KEYS.map(k => {
     const d = toDate(timings[k], now);
@@ -714,16 +762,20 @@ function renderPrayer(){
     for (const k of PRAYER_KEYS){ const d = toDate(timings[k], now2); if (d <= now2) prev = d; }
     if (!prev){ prev = toDate(timings.Isha, addDays(now2, -1)); }
     const pct = Math.min(100, Math.max(0, (now2 - prev) / (n.d - prev) * 100));
-    $('#nextCard').innerHTML = `
+    const C = 2 * Math.PI * 96, off = C * (1 - pct / 100);
+    setHero(`
       <div class="label">${t('nextPrayer')}</div>
       <div class="name">${P[n.k]}<span class="arn">${PRAYER_AR[n.k]}</span></div>
-      <div class="time">${pad(n.d.getHours())}:${pad(n.d.getMinutes())}</div>
-      <div class="count">${pad(h)}:${pad(m)}:${pad(sec)}</div>
-      <div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>`;
+      <div class="ringwrap"><svg class="ring" viewBox="0 0 208 208"><circle class="trk" cx="104" cy="104" r="96"/>
+        <circle class="prg" cx="104" cy="104" r="96" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${off.toFixed(1)}"/></svg>
+        <div class="ringin"><div class="count">${pad(h)}:${pad(m)}:${pad(sec)}</div><div class="lbl">${t('until',{p:P[n.k]})}</div></div></div>
+      <div class="time">${t('at',{t:pad(n.d.getHours())+':'+pad(n.d.getMinutes())})}</div>`);
   };
   tick(); tickTimer = setInterval(tick, 1000);
   renderQibla();
+  renderTiles();
 }
+function setHero(html){ ['#nextCard','#todayNext'].forEach(sel => { const el = $(sel); if (el) el.innerHTML = html; }); }
 
 $('#gpsBtn').onclick = () => {
   if (!navigator.geolocation){ $('#prayerErr').textContent = t('locErr'); return; }
@@ -801,7 +853,7 @@ $('#compassBtn').onclick = async () => {
 /* =========================================================
    KORAN
    ========================================================= */
-let surahs = [], openSurah = null;
+let surahs = store.get('surahs', []), openSurah = null;
 async function initQuran(){
   loaded.quran = true;
   try{
@@ -895,9 +947,10 @@ async function loadSurah(n, scrollTo){
       <div class="arabic">${esc(text)} <span style="color:var(--gold)">﴿${a.numberInSurah.toLocaleString('ar-EG')}﴾</span></div>
       <div class="tr">${esc(tr.ayahs[i]?.text)}</div>
       <div class="tools">
-        <span class="badge">${n}:${a.numberInSurah}</span>
-        <button class="btn ghost small" data-play="${a.number}">▶︎</button>
-        <button class="btn ghost small" data-mark="${a.numberInSurah}">🔖 ${t('markRead')}</button>
+        <span class="badge">${n}:${a.numberInSurah}</span><span style="flex:1"></span>
+        <button class="ib" data-play="${a.number}" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
+        <button class="ib ${isLast ? 'on' : ''}" data-mark="${a.numberInSurah}" aria-label="${t('markRead')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></button>
+        <button class="ib" data-share="${esc(info.englishName)} ${n}:${a.numberInSurah}" aria-label="${t('share')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7.5h14V12"/></svg></button>
       </div></div>`;
   }).join('');
   $('#surahBody').innerHTML = `
@@ -911,18 +964,19 @@ async function loadSurah(n, scrollTo){
   $('#surahBody').querySelectorAll('[data-mark]').forEach(b => b.onclick = () => {
     S.lastRead = {s:n, a:+b.dataset.mark}; store.set('lastRead', S.lastRead);
     $('#surahBody').querySelectorAll('.ayah.last').forEach(x => x.classList.remove('last'));
-    b.closest('.ayah').classList.add('last'); b.textContent = '✓ ' + t('saved');
+    b.closest('.ayah').classList.add('last'); $('#surahBody').querySelectorAll('[data-mark].on').forEach(x => x.classList.remove('on')); b.classList.add('on'); toast(t('saved') + ' ✓');
   });
   if (scrollTo) setTimeout(() => document.getElementById('ayah-'+scrollTo)?.scrollIntoView({behavior:'smooth', block:'center'}), 100);
 }
+const ICON_PLAY = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg>', ICON_PAUSE = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5h3.5v14H7zM13.5 5H17v14h-3.5z"/></svg>', ICON_SHARE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7.5h14V12"/></svg>';
 const player = $('#player'); let playingBtn = null;
 function playAyah(globalNo, btn){
-  if (playingBtn === btn && !player.paused){ player.pause(); btn.textContent = '▶︎'; return; }
-  if (playingBtn) playingBtn.textContent = '▶︎';
+  if (playingBtn === btn && !player.paused){ player.pause(); btn.innerHTML = ICON_PLAY; return; }
+  if (playingBtn) playingBtn.innerHTML = ICON_PLAY;
   player.src = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalNo}.mp3`;
-  player.play().catch(()=>{}); btn.textContent = '❚❚'; playingBtn = btn;
+  player.play().catch(()=>{}); btn.innerHTML = ICON_PAUSE; playingBtn = btn;
   player.onended = () => {
-    btn.textContent = '▶︎';
+    btn.innerHTML = ICON_PLAY;
     const next = document.querySelector(`[data-play="${globalNo+1}"]`);
     if (next){ next.closest('.ayah').scrollIntoView({behavior:'smooth', block:'center'}); playAyah(globalNo+1, next); }
   };
@@ -955,6 +1009,7 @@ function hadithCard(h, ar, fallback){
     ${arText ? `<div class="arabic">${esc(arText)}</div>` : ''}
     <div class="txt">${esc(h.text)}</div>
     ${fallback ? `<div class="muted" style="margin-top:6px">${t('hadithFallback')}</div>` : ''}
+    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="ib" data-share="Sahih al-Bukhari ${h.hadithnumber}">${ICON_SHARE}</button></div>
   </div>`;
 }
 
@@ -996,7 +1051,7 @@ async function initHadith(){
 async function showHadithNum(n, target, title){
   if (useDE()){
     const en = deFind(n);
-    if (en){ target.innerHTML = (title ? `<h2>${title}</h2>` : '') + deCard(en, false); target.classList.add('hadith'); bindArabic(target); if (target.id === 'hotd') clampHotd(); return; }
+    if (en){ target.innerHTML = (title ? `<h2>${title}</h2>` : '') + deCard(en, false); target.classList.add('hadith'); bindArabic(target); if (target.id === 'hotd' || target.id === 'todayHadith') clampHotd(target, target.id === 'todayHadith' ? 5 : 7); return; }
     const band = n <= 885 ? 1 : null;
     target.innerHTML = `<p class="muted">Hadith ${n} ist in deinen eingelesenen Bänden nicht enthalten – füge die übrigen Bände hinzu. Online-Fassung:</p><div></div>`;
     target = target.lastElementChild;
@@ -1007,7 +1062,7 @@ async function showHadithNum(n, target, title){
     const h = data.hadiths?.[0];
     if (!h) throw 0;
     target.innerHTML = (title ? `<h2>${title}</h2>` : '') + hadithCard(h, ar, fallback).replace('class="card hadith"', 'class="hadith"');
-    if (target.id === 'hotd') clampHotd();
+    if (target.id === 'hotd' || target.id === 'todayHadith') clampHotd(target, target.id === 'todayHadith' ? 5 : 7);
   }catch{ target.innerHTML = `<div class="err">${t('netErr')}</div>`; }
 }
 $('#hadithNumForm').onsubmit = e => {
@@ -1371,7 +1426,7 @@ function deCard(entry, wrap = true){
     ${c.title ? `<div class="muted" style="font-size:13px;margin-bottom:8px;font-style:italic">${esc(c.title)}</div>` : ''}
     <div class="txt" style="white-space:normal">${paras}</div>
     <div class="row" style="justify-content:space-between;margin-top:4px">
-      <button class="btn ghost small" data-ar="${h.n}">عربي</button>
+      <div class="row" style="gap:8px"><button class="btn ghost small" data-ar="${h.n}">عربي</button><button class="ib" data-share="Sahih al-Bukhari ${esc(h.label)} – Übers. © Föderale Islamische Union e.V.">${ICON_SHARE}</button></div>
       <span class="muted" style="font-size:11px;text-align:right">© Föderale Islamische Union e.V. · Band ${book.band}</span></div>
     <div class="arabic hidden" id="ar-${h.n}-${Math.random().toString(36).slice(2,7)}"></div>`;
   return wrap ? `<div class="card hadith">${inner}</div>` : inner;
@@ -1386,8 +1441,9 @@ function bindArabic(root){
     box.style.marginTop = '10px';
   });
 }
-function clampHotd(){
-  const txt = $('#hotd .txt'); if (!txt) return;
+function clampHotd(root = $('#hotd'), lines){
+  const txt = root.querySelector('.txt'); if (!txt || root.querySelector('.more-btn')) return;
+  if (lines) txt.style.webkitLineClamp = lines;
   txt.classList.add('clamp');
   requestAnimationFrame(() => {
     if (txt.scrollHeight <= txt.clientHeight + 4) return;
@@ -1504,12 +1560,112 @@ const applyFont = () => document.documentElement.style.setProperty('--arsize', S
 $('#fontRange').value = S.arsize;
 $('#fontRange').oninput = e => { S.arsize = +e.target.value; store.set('arsize', S.arsize); applyFont(); };
 
+
+/* =========================================================
+   HEUTE – Startseite
+   ========================================================= */
+const TRACK = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+function toast(msg){
+  document.querySelectorAll('.toast').forEach(x => x.remove());
+  const el = document.createElement('div'); el.className = 'toast'; el.textContent = msg; document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1800);
+}
+async function shareText(text){
+  try{ if (navigator.share){ await navigator.share({text}); return; } }catch(e){ if (e && e.name === 'AbortError') return; }
+  try{ await navigator.clipboard.writeText(text); toast(t('copied')); }catch{}
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-share]'); if (!b) return;
+  const card = b.closest('.ayah, .hadith, .card, .votd');
+  const parts = [...card.querySelectorAll('.arabic:not(.hidden), .tr, .txt')].map(x => x.innerText.trim()).filter(Boolean);
+  shareText(parts.join('\n\n') + '\n\n— ' + b.dataset.share + '\n(Yüsra)');
+});
+function streakDays(){
+  let n = 0, d = new Date();
+  if ((store.get('track-' + ymd(d), [])).length < 5) d = addDays(d, -1);
+  while ((store.get('track-' + ymd(d), [])).length >= 5 && n < 999){ n++; d = addDays(d, -1); }
+  return n;
+}
+function renderTracker(){
+  const key = 'track-' + ymd(new Date()), done = store.get(key, []), P = I18N[S.lang].prayers;
+  $('#ptrack').innerHTML = TRACK.map(k => `<button class="pt ${done.includes(k) ? 'on' : ''}" data-pk="${k}"><span class="ck">${CHECK}</span>${P[k]}</button>`).join('');
+  $('#trackCount').textContent = `${done.length}/5`;
+  const st = streakDays();
+  $('#streak').textContent = st > 0 ? t('streakTxt', {n: st}) : t('streakNone');
+  $('#ptrack').querySelectorAll('[data-pk]').forEach(b => b.onclick = () => {
+    const arr = store.get(key, []), k = b.dataset.pk, i = arr.indexOf(k);
+    if (i >= 0) arr.splice(i, 1); else arr.push(k);
+    store.set(key, arr); renderTracker();
+    if (arr.length === 5 && navigator.vibrate) navigator.vibrate(20);
+  });
+}
+const TILE_IC = {
+  qibla: _sv('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+  book: _sv('<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/>'),
+  star: _sv('<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
+  moon: _sv('<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>')
+};
+function renderTiles(){
+  if (!$('#tiles')) return;
+  const now = new Date(), h = hijri(now);
+  const q = S.loc ? Math.round(qiblaBearing(S.loc.lat, S.loc.lng)) + '°' : '—';
+  const lr = S.lastRead, sname = lr && surahs[lr.s-1] ? surahs[lr.s-1].englishName : null;
+  const ev = upcomingEvents(dayStart(now), 400).find(e => daysBetween(now, e.date) >= 0);
+  let ram;
+  if (h.m === 9) ram = {v: t('ramadanDay', {d: h.d}), l: t('ramadan')};
+  else { const st = findRamadanStart(dayStart(now)); ram = {v: st ? daysBetween(now, st) + ' ' + (S.lang === 'tr' ? 'gün' : 'Tage') : '—', l: t('ramadan')}; }
+  const tiles = [
+    {id:'qibla', ic:TILE_IC.qibla, v:q, l:t('qibla')},
+    {id:'read', ic:TILE_IC.book, v: lr ? `${sname || lr.s} · ${lr.a}` : 'Al-Fātiḥa', l: lr ? t('continueRead') : t('startQuran')},
+    {id:'event', ic:TILE_IC.star, v: ev ? I18N[S.lang].events[ev.k] : '—', l: ev ? relDays(daysBetween(now, ev.date)) : t('nextEvent')},
+    {id:'ram', ic:TILE_IC.moon, v: ram.v, l: ram.l}
+  ];
+  $('#tiles').innerHTML = tiles.map(x => `<button class="tile" data-tile="${x.id}"><span class="ti">${x.ic}</span><span class="tv">${esc(x.v)}</span><span class="tl">${esc(x.l)}</span></button>`).join('');
+  $('#tiles').querySelectorAll('[data-tile]').forEach(b => b.onclick = async () => {
+    const id = b.dataset.tile;
+    if (id === 'qibla'){ show('prayer'); setTimeout(() => $('#compass').scrollIntoView({behavior:'smooth', block:'center'}), 80); }
+    else if (id === 'read'){ show('quran'); if (!surahs.length) await initQuran(); loadSurah(lr ? lr.s : 1, lr ? lr.a : null); }
+    else show('calendar');
+  });
+}
+async function renderVotd(){
+  const box = $('#votd'); if (!box) return;
+  const doy = daysBetween(new Date(new Date().getFullYear(),0,1), new Date());
+  const n = ((doy + 3 * new Date().getFullYear()) * 97) % 6236 + 1;
+  try{
+    const r = await getJSON(`https://api.alquran.cloud/v1/ayah/${n}/editions/quran-uthmani,${S.trans[S.lang]}`);
+    const [a, tr] = r.data;
+    box.innerHTML = `<h2>${t('votd')}</h2><div class="arabic">${esc(a.text)}</div><div class="tr">${esc(tr.text)}</div>
+      <div class="row" style="margin-top:12px"><span class="badge">${esc(a.surah.englishName)} ${a.surah.number}:${a.numberInSurah}</span><span style="flex:1"></span>
+      <button class="ib" data-share="${esc(a.surah.englishName)} ${a.surah.number}:${a.numberInSurah}">${ICON_SHARE}</button>
+      <button class="btn ghost small" id="votdOpen">${t('open')} ›</button></div>`;
+    $('#votdOpen').onclick = async () => { show('quran'); if (!surahs.length) await initQuran(); loadSurah(a.surah.number, a.numberInSurah); };
+  }catch{ box.innerHTML = `<h2>${t('votd')}</h2><div class="err">${t('netErr')}</div>`; }
+}
+async function renderTodayHadith(){
+  const box = $('#todayHadith'); if (!box) return;
+  autoHadithLang(); await loadDE();
+  const doy = daysBetween(new Date(new Date().getFullYear(),0,1), new Date());
+  let n = ((doy + new Date().getFullYear()) * 37) % 7563 + 1;
+  if (useDE()) n = DE.nums.find(x => x >= n) ?? DE.nums[0];
+  await showHadithNum(n, box, t('hotd'));
+}
+function renderToday(){
+  const now = new Date(), hr = now.getHours();
+  $('#greet').textContent = now.getDay() === 5 ? t('jumua') : hr < 11 ? t('greetM') : hr < 17 ? t('greetD') : t('greetE');
+  $('#greetDate').textContent = fmtDate(now, {weekday:'long', day:'numeric', month:'long'}) + ' · ' + hijriStr(hijri(now));
+  renderTracker(); renderTiles();
+}
+
 // ---------- Start ----------
 applyTheme(S.theme);
 applyFont();
 applyLang();
 fetchTimings();
 renderCalendar();
+renderToday(); renderVotd(); renderTodayHadith();
 if (!S.loc) $('#gpsBtn').click();
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible'){

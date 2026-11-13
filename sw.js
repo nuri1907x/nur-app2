@@ -1,5 +1,5 @@
 // Yüsra – Service Worker: App offline, gelesene Suren/Hadithe/Gebetszeiten aus dem Cache
-const VERSION = 'nur-v10';
+const VERSION = 'nur-v11';
 const SHELL = ['./', './index.html', './manifest.json', './apple-touch-icon.png', './icon-192.png', './icon-512.png', './logo.svg'];
 
 self.addEventListener('install', e => {
