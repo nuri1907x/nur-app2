@@ -141,7 +141,6 @@ main{padding:6px 16px 24px;max-width:720px;margin:0 auto}
 .ib.on{color:var(--gold2);background:var(--hl)}
 .ib[data-fav].on{color:#E0607E;background:rgba(224,96,126,.14)}
 .ib[data-fav].on svg path{fill:currentColor}
-[data-theme]:not([data-theme="sand"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6)}
 .toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:60;animation:pop .2s ease}
 .votd .arabic{font-family:var(--ar);font-size:26px;line-height:2;direction:rtl;text-align:right}
 .votd .tr{margin-top:8px;line-height:1.65;opacity:.9}
@@ -276,7 +275,6 @@ nav.tabs button.on{color:var(--gold2);background:var(--hl)}
 .jck.on svg{opacity:1}
 .zk-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .zk-grid .field label{font-size:12px}
-.leaflet-container{background:var(--card2)!important;font-family:var(--ui)!important}
 
 /* ---------- Einstellungen (gruppiert) ---------- */
 .group-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin:18px 6px 8px}
@@ -498,14 +496,6 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
       <button class="btn small" id="tbAfter" data-t="start"></button></div></div>
   </section>
 
-  <!-- ADHKAR -->
-  <section class="view" id="v-adhkar">
-    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
-    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="adhkarTitle"></h1><div class="psub" data-t="psAdhkar"></div></div></div>
-    <div class="seg" id="adhSeg"><button data-w="morning" data-t="morning"></button><button data-w="evening" data-t="evening"></button></div>
-    <div id="adhList"></div>
-  </section>
-
   <!-- DUAS -->
   <section class="view" id="v-duas">
     <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
@@ -534,17 +524,6 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
     <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
     <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="khatm"></h1><div class="psub" data-t="psKhatm"></div></div></div>
     <div id="khatmBody"></div>
-  </section>
-
-  <!-- MOSCHEEN -->
-  <section class="view" id="v-mosques">
-    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
-    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="mosques"></h1><div class="psub" data-t="psMosques"></div></div></div>
-    <div class="card" id="mqGoogle"></div>
-    <div class="chips" id="mqFilter"><button class="chip on" data-f="all" data-t="all"></button><button class="chip" data-f="ditib">DITIB</button><button class="chip" data-f="igmg">IGMG</button></div>
-    <div class="seg" id="mqRadius"><button data-r="2000">2 km</button><button class="on" data-r="5000">5 km</button><button data-r="10000">10 km</button><button data-r="20000">20 km</button></div>
-    <div class="card" style="padding:0;overflow:hidden"><div id="mqMap" style="height:260px;background:var(--card2)"></div></div>
-    <div class="card list" id="mqList"></div>
   </section>
 
   <!-- ZAKAT -->
@@ -870,7 +849,7 @@ function show(view){
   if (view === 'hadith' && !loaded.hadith) initHadith();
   if (view === 'calendar') renderCalendar();
   if (view === 'today') renderToday();
-  const R = {more: renderMore, tasbih: renderTasbih, adhkar: renderAdhkar, duas: renderDuas, names: renderNames, favs: renderFavs, khatm: renderKhatm, mosques: initMosques, zakat: initZakat, ics: renderIcs};
+  const R = {more: renderMore, tasbih: renderTasbih, duas: renderDuas, names: renderNames, favs: renderFavs, khatm: renderKhatm, zakat: initZakat, ics: renderIcs};
   if (R[view]) R[view]();
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.view));
@@ -1845,12 +1824,10 @@ function renderToday(){
 const MORE = [
   {v:'calendar', ic:'🗓️', de:'Kalender', tr:'Takvim', sde:'Hijri & Ramadan', str:'Hicri & Ramazan'},
   {v:'tasbih', ic:'📿', de:'Tasbih', tr:'Tesbih', sde:'Digitaler Zähler', str:'Dijital zikirmatik'},
-  {v:'adhkar', ic:'🌅', de:'Adhkar', tr:'Ezkâr', sde:'Morgen & Abend', str:'Sabah & akşam'},
   {v:'duas', ic:'🤲', de:'Duʿās', tr:'Dualar', sde:'Für den Alltag', str:'Günlük dualar'},
   {v:'names', ic:'✨', de:'99 Namen', tr:'Esmâ-i Hüsnâ', sde:'Mit Lernkarten', str:'Kartlarla öğren'},
   {v:'favs', ic:'❤️', de:'Favoriten', tr:'Favoriler', sde:'Gemerkte Inhalte', str:'Kaydedilenler'},
   {v:'khatm', ic:'📖', de:'Khatm-Plan', tr:'Hatim planı', sde:'Koran in 30 Tagen', str:'30 günde Kur’an'},
-  {v:'mosques', ic:'🕌', de:'Moscheen', tr:'Camiler', sde:'In der Nähe', str:'Yakınında'},
   {v:'zakat', ic:'💰', de:'Zakat', tr:'Zekât', sde:'Rechner', str:'Hesaplama'},
   {v:'ics', ic:'🔔', de:'Erinnerungen', tr:'Hatırlatıcılar', sde:'Gebete im Kalender', str:'Takvime ekle'}
 ];
@@ -1951,8 +1928,7 @@ $('#tbGoals').querySelectorAll('button').forEach(b => b.onclick = () => { TB.goa
 $('#tbReset').onclick = () => { TB.count = 0; saveTb(); renderTasbih(); };
 $('#tbAfter').onclick = () => { TB.seq = 0; [TB.i, TB.goal] = SEQ[0]; TB.count = 0; saveTb(); renderTasbih(); };
 
-/* ---------- Adhkar ---------- */
-let adhWhen = new Date().getHours() < 14 ? 'morning' : 'evening';
+/* ---------- Karten für Duʿās ---------- */
 function dcard(x, i, counterKey){
   const L = lng(), cnt = counterKey ? (store.get(counterKey, {})[i] || 0) : 0, left = x.n ? Math.max(0, x.n - cnt) : 0;
   return `<div class="card dcard">
@@ -1964,21 +1940,7 @@ function dcard(x, i, counterKey){
       <button class="ib" data-share="${esc(x.src || 'Duʿā')}">${ICON_SHARE}</button>
       ${counterKey && x.n ? `<button class="cnt-btn ${left === 0 ? 'done' : ''}" data-cnt="${i}">${left === 0 ? '✓' : left + '×'}</button>` : ''}</div></div>`;
 }
-function renderAdhkar(){
-  $('#adhSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.w === adhWhen));
-  const key = `adh-${today()}-${adhWhen}`;
-  const items = YC.adhkar.map((x, i) => [x, i]).filter(([x]) => x.when === 'both' || x.when === adhWhen);
-  $('#adhList').innerHTML = items.map(([x, i]) => dcard(x, i, key)).join('');
-  $('#adhList').querySelectorAll('[data-cnt]').forEach(b => b.onclick = () => {
-    const m = store.get(key, {}), i = +b.dataset.cnt, x = YC.adhkar[i];
-    m[i] = Math.min(x.n, (m[i] || 0) + 1); store.set(key, m);
-    if (navigator.vibrate) navigator.vibrate(m[i] === x.n ? [30, 40, 30] : 8);
-    const left = x.n - m[i]; b.textContent = left === 0 ? '✓' : left + '×'; b.classList.toggle('done', left === 0);
-  });
-  bindOpenQ($('#adhList'));
-}
 function bindOpenQ(root){ root.querySelectorAll('[data-openq]').forEach(b => b.onclick = async () => { show('quran'); if (!surahs.length) await initQuran(); loadSurah(+b.dataset.openq); }); }
-$('#adhSeg').querySelectorAll('button').forEach(b => b.onclick = () => { adhWhen = b.dataset.w; renderAdhkar(); });
 
 /* ---------- Duʿās ---------- */
 let duaCat = 'all';
@@ -2048,114 +2010,6 @@ function renderKhatm(){
   box.querySelectorAll('[data-jr]').forEach(b => b.onclick = async () => { const [s, a] = b.dataset.jr.split(':').map(Number); show('quran'); if (!surahs.length) await initQuran(); loadSurah(s, a > 1 ? a : null); });
   $('#khReset').onclick = () => { if (confirm(t('khatmReset') + '?')){ store.set('khatm', null); renderKhatm(); } };
 }
-
-/* ---------- Moscheen in der Nähe ---------- */
-let mqRadius = 5000, mqMap = null, mqLayer = null;
-const hav = (a, b, c, d) => { const R = 6371, x = rad(c - a), y = rad(d - b); const h = Math.sin(x/2)**2 + Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
-function loadLeaflet(){
-  if (window.L) return Promise.resolve();
-  return new Promise((res, rej) => {
-    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l);
-    const sc = document.createElement('script'); sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
-  });
-}
-const OVERPASS = ['https://overpass-api.de/api/interpreter', 'https://overpass.private.coffee/api/interpreter', 'https://maps.mail.ru/osm/tools/overpass/api/interpreter', 'https://overpass.kumi.systems/api/interpreter'];
-function fetchJSONTimeout(url, ms, signal){
-  const ctl = new AbortController(), tm = setTimeout(() => ctl.abort(), ms);
-  if (signal) signal.addEventListener('abort', () => ctl.abort());
-  return fetch(url, {signal: ctl.signal}).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); }).finally(() => clearTimeout(tm));
-}
-function anyOf(ps){ // erstes erfolgreiches Ergebnis (Promise.any-Ersatz für ältere iPhones)
-  return new Promise((res, rej) => { let n = ps.length; ps.forEach(p => p.then(res, () => { if (--n === 0) rej(new Error('all failed')); })); });
-}
-let mqReq = 0, mqFilter = 'all', mqLast = [];
-const gmSearch = q => { const {lat, lng: lo} = S.loc; return `https://www.google.com/maps/search/${encodeURIComponent(q)}/@${lat},${lo},13z`; };
-const gmRoute = m => `https://www.google.com/maps/dir/?api=1&destination=${m.la},${m.ln}`;
-function mqKind(tg){
-  const hay = [tg.name, tg.operator, tg.brand, tg['operator:short'], tg.website, tg['name:de'], tg['official_name']].filter(Boolean).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  if (/d[iİı]t[iİı]b|türkisch-islamische union|diyanet/.test(hay)) return 'ditib';
-  if (/[iİı]gmg|millî görüş|milli görüş|milli gorus/.test(hay)) return 'igmg';
-  return '';
-}
-function renderMqGoogle(){
-  if (!S.loc){ $('#mqGoogle').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
-  const tr = S.lang === 'tr', mq = tr ? 'cami' : 'Moschee';
-  $('#mqGoogle').innerHTML = `<h2>Google Maps</h2>
-    <div class="row" style="gap:8px;flex-wrap:wrap">
-      <a class="btn" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch('DITIB ' + mq)}">DITIB</a>
-      <a class="btn" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch('IGMG ' + mq)}">IGMG</a>
-      <a class="btn ghost" style="text-decoration:none;flex:1;text-align:center" target="_blank" rel="noopener" href="${gmSearch(tr ? 'cami' : 'Moschee')}">${t('all')}</a>
-    </div>
-    <div class="muted" style="margin-top:8px;font-size:12.5px">${tr ? 'Google Maps’te konumunun yakınındaki camileri gösterir.' : 'Öffnet Google Maps mit den Moscheen in deiner Nähe.'}</div>`;
-}
-function mqRenderList(list){
-  mqLast = list;
-  const L2 = mqFilter === 'all' ? list : list.filter(m => m.kind === mqFilter);
-  $('#mqList').innerHTML = L2.length ? L2.slice(0, 50).map(m => `<div class="item">
-      <span class="tile-ic" style="width:38px;height:38px;font-size:18px">🕌</span>
-      <div class="main"><b>${esc(m.name)}</b>${m.kind ? ` <span class="badge" style="font-size:10.5px">${m.kind.toUpperCase()}</span>` : ''}
-        <span class="muted" style="display:block">${m.d < 1 ? Math.round(m.d * 1000) + ' m' : m.d.toFixed(1).replace('.', ',') + ' km'}${m.addr ? ' · ' + esc(m.addr) : ''}</span></div>
-      <a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="${gmRoute(m)}">${S.lang === 'tr' ? 'Yol' : 'Route'}</a></div>`).join('')
-    : `<div class="muted" style="padding:6px 0">${mqFilter === 'all' ? t('noMosques') : (S.lang === 'tr' ? `Haritada ${mqFilter.toUpperCase()} olarak işaretli cami yok – yukarıdan Google Maps’te ara.` : `Keine als ${mqFilter.toUpperCase()} gekennzeichnete Moschee in den Kartendaten – nutze oben Google Maps.`)}</div>`;
-}
-function mqAppleLink(){ return ''; }
-$('#mqFilter').querySelectorAll('[data-f]').forEach(b => b.onclick = () => {
-  mqFilter = b.dataset.f; $('#mqFilter').querySelectorAll('[data-f]').forEach(x => x.classList.toggle('on', x === b));
-  mqRenderList(mqLast);
-});
-async function mqDrawMap(list){
-  const {lat, lng: lo} = S.loc;
-  try{
-    await loadLeaflet();
-    if (current !== 'mosques') return;
-    if (!mqMap){
-      mqMap = L.map('mqMap', {zoomControl:false, attributionControl:true});
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(mqMap);
-    }
-    if (mqLayer) mqLayer.remove();
-    mqLayer = L.layerGroup().addTo(mqMap);
-    L.circleMarker([lat, lo], {radius:8, color:'#fff', weight:3, fillColor:'#3B82F6', fillOpacity:1}).addTo(mqLayer);
-    (list || []).forEach(m => L.circleMarker([m.la, m.ln], {radius:7, color:'#fff', weight:2, fillColor:'#C79A52', fillOpacity:1}).bindPopup(`<b>${esc(m.name)}</b><br>${m.addr ? esc(m.addr) : ''}`).addTo(mqLayer));
-    mqMap.setView([lat, lo], mqRadius <= 2000 ? 14 : mqRadius <= 5000 ? 13 : 12);
-    setTimeout(() => mqMap.invalidateSize(), 150);
-  }catch{ $('#mqMap').innerHTML = ''; }
-}
-async function initMosques(){
-  $('#mqRadius').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === mqRadius));
-  if (!S.loc){ renderMqGoogle(); $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
-  const req = ++mqReq, {lat, lng: lo} = S.loc;
-  renderMqGoogle();
-  const ckey = `mq2-${lat.toFixed(2)}-${lo.toFixed(2)}-${mqRadius}`, cached = store.get(ckey, null);
-  // 1) sofort: Karte + Zwischenspeicher (falls vorhanden)
-  mqDrawMap(cached?.list);
-  if (cached && Date.now() - cached.at < 7 * 864e5){ mqRenderList(cached.list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink()); return; }
-  $('#mqList').innerHTML = `<div class="loader" style="height:60px"></div><div class="muted center" style="margin-top:8px">${S.lang === 'tr' ? 'Camiler aranıyor …' : 'Moscheen werden gesucht …'}</div>` + mqAppleLink();
-  // 2) alle Server gleichzeitig, erster gewinnt, max. 12 s
-  const A = `(around:${mqRadius},${lat},${lo})`;
-  const q = `[out:json][timeout:15];(nwr["amenity"="place_of_worship"]["religion"="muslim"]${A};nwr["building"="mosque"]${A};nwr["amenity"="place_of_worship"]["name"~"moschee|camii|cami|mescid|masjid|mosque|ditib|igmg|islam",i]${A};nwr["operator"~"ditib|igmg|diyanet|milli",i]${A};);out center 120;`;
-  const ctl = new AbortController();
-  let data;
-  try{ data = await anyOf(OVERPASS.map(u => fetchJSONTimeout(`${u}?data=${encodeURIComponent(q)}`, 12000, ctl.signal))); ctl.abort(); }
-  catch{
-    if (req !== mqReq) return;
-    $('#mqList').innerHTML = `<div class="muted" style="padding:6px 0">${S.lang === 'tr' ? 'Harita servisi şu an yanıt vermiyor.' : 'Der Kartendienst antwortet gerade nicht.'}</div>` + mqAppleLink();
-    return;
-  }
-  if (req !== mqReq) return;
-  const list = (data.elements || []).map(e => {
-    const la = e.lat ?? e.center?.lat, ln = e.lon ?? e.center?.lon, tg = e.tags || {};
-    const addr = [[tg['addr:street'], tg['addr:housenumber']].filter(Boolean).join(' '), tg['addr:city']].filter(Boolean).join(', ');
-    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln), kind: mqKind(tg)};
-  }).filter(m => m.la).sort((a, b) => a.d - b.d)
-    .reduce((acc, m) => { // Doppelte (Gebäude + Punkt) zusammenführen
-      const dup = acc.find(x => hav(x.la, x.ln, m.la, m.ln) < 0.05);
-      if (dup){ dup.kind ||= m.kind; if (!dup.addr) dup.addr = m.addr; } else acc.push(m);
-      return acc; }, []);
-  store.set(ckey, {at: Date.now(), list});
-  mqRenderList(list); $('#mqList').insertAdjacentHTML('beforeend', mqAppleLink());
-  mqDrawMap(list);
-}
-$('#mqRadius').querySelectorAll('button').forEach(b => b.onclick = () => { mqRadius = +b.dataset.r; initMosques(); });
 
 /* ---------- Zakat-Rechner ---------- */
 const ZK = Object.assign({cur: S.lang === 'tr' ? 'TRY' : 'EUR', std: S.lang === 'tr' ? 80.18 : 85, gram: 0, v: {}}, store.get('zk', {}));
