@@ -19,12 +19,13 @@
   --bg:#071f18; --bg2:#0b3d2e; --card:#0f2e25; --card2:#143a2f; --line:#1f4a3d;
   --gold:#d4af37; --gold2:#f1d27a; --text:#eef3ef; --muted:#9db5ab; --danger:#e07a5f;
   --ar: 'Amiri', 'Geeza Pro', serif;
+  --ui: Inter, -apple-system, system-ui, 'Geeza Pro', sans-serif;
   --arsize: 28px;
   --safe-b: env(safe-area-inset-bottom, 0px);
   --safe-t: env(safe-area-inset-top, 0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,-apple-system,system-ui,sans-serif;font-size:16px;line-height:1.5}
+html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--ui);font-size:16px;line-height:1.5}
 body{min-height:100vh;padding-bottom:calc(76px + var(--safe-b))}
 button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 input,select{font:inherit;color:var(--text);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;width:100%}
@@ -204,13 +205,25 @@ nav.tabs button.on{color:var(--gold2)}
         </form>
         <div id="hadithNumResult"></div>
       </div>
+      <div class="card hidden" id="deSearchCard">
+        <h2>Im Text suchen</h2>
+        <form class="row" id="deSearchForm">
+          <input id="deSearchQ" placeholder="z. B. Absicht, Gebet, Nachbar …" autocomplete="off">
+          <button class="btn">🔍</button>
+        </form>
+        <div id="deSearchRes"></div>
+      </div>
       <div class="card" id="deBukhari">
         <h2>📖 Sahih al-Bukhari auf Deutsch</h2>
-        <p class="muted" style="margin-top:0">Übersetzung der Föderalen Islamischen Union e.V. (9 Bände). So geht’s: 1) Band herunterladen ⬇︎ (in Safari „Teilen“ → „In Dateien sichern“), 2) hier „Bände hinzufügen“ tippen. Die Bände bleiben nur auf deinem iPhone.</p>
-        <div id="deBukhariLinks"></div>
-        <label class="btn" style="display:block;text-align:center;margin-top:12px">＋ Bände aus Dateien hinzufügen
-          <input type="file" id="pdfIn" accept="application/pdf,.pdf" multiple class="hidden">
-        </label>
+        <div id="deStatus" class="muted" style="margin-bottom:8px"></div>
+        <details id="deDetails">
+          <summary class="muted" style="cursor:pointer;margin-bottom:8px">Bände verwalten / als PDF lesen</summary>
+          <p class="muted" style="margin-top:0">Übersetzung der Föderalen Islamischen Union e.V. (9 Bände). 1) Band herunterladen ⬇︎ (Safari „Teilen“ → „In Dateien sichern“), 2) „Bände hinzufügen“ tippen. Alles bleibt nur auf deinem iPhone.</p>
+          <div id="deBukhariLinks"></div>
+          <label class="btn" style="display:block;text-align:center;margin-top:12px">＋ Bände aus Dateien hinzufügen
+            <input type="file" id="pdfIn" accept="application/pdf,.pdf" multiple class="hidden">
+          </label>
+        </details>
       </div>
       <div class="card list" id="bookList"><div class="loader"></div></div>
     </div>
@@ -733,10 +746,23 @@ function hadithCard(h, ar, fallback){
 
 async function initHadith(){
   loaded.hadith = true;
+  await loadDE(); deStatus();
+  $('#deSearchCard').classList.toggle('hidden', !useDE());
   // Hadith des Tages
   const doy = daysBetween(new Date(new Date().getFullYear(),0,1), new Date());
-  const n = ((doy + new Date().getFullYear()) * 37) % 7563 + 1;
+  let n = ((doy + new Date().getFullYear()) * 37) % 7563 + 1;
+  if (useDE()) n = DE.nums.find(x => x >= n) ?? DE.nums[0];
   showHadithNum(n, $('#hotd'), t('hotd'));
+  if (useDE()){
+    $('#bookList').innerHTML = `<h2>Bücher (Deutsch)</h2>` + DE.books.map((b, i) => {
+      const hs = b.chapters.flatMap(c => c.hadiths), first = hs[0]?.n, last = hs[hs.length-1]?.nums.slice(-1)[0];
+      return `<button class="item" style="width:100%;text-align:left" data-deb="${i}">
+        <div class="num"><span>${i+1}</span></div><div class="main"><b>${esc(b.title)}</b>
+        <span class="muted">Band ${b.band} · Nr. ${first}–${last} · ${hs.length} Hadithe</span></div><span class="muted">›</span></button>`;
+    }).join('') + (DE.bands.length < 9 ? `<p class="muted" style="margin:10px 0 0">Weitere Bücher erscheinen, sobald du die übrigen Bände hinzufügst.</p>` : '');
+    $('#bookList').querySelectorAll('[data-deb]').forEach(b => b.onclick = () => openDeBook(+b.dataset.deb));
+    return;
+  }
   // Bücherliste
   $('#bookList').innerHTML = '<div class="loader"></div>';
   let sections = null;
@@ -754,6 +780,13 @@ async function initHadith(){
 }
 
 async function showHadithNum(n, target, title){
+  if (useDE()){
+    const en = deFind(n);
+    if (en){ target.innerHTML = (title ? `<h2>${title}</h2>` : '') + deCard(en, false); target.classList.add('hadith'); bindArabic(target); return; }
+    const band = n <= 885 ? 1 : null;
+    target.innerHTML = `<p class="muted">Hadith ${n} ist in deinen eingelesenen Bänden nicht enthalten – füge die übrigen Bände hinzu. Online-Fassung:</p><div></div>`;
+    target = target.lastElementChild;
+  }
   target.innerHTML = '<div class="loader"></div>';
   try{
     const [{data, fallback}, ar] = await Promise.all([fetchHadithPath(`${n}.json`), fetchArabic(`${n}.json`)]);
@@ -881,22 +914,25 @@ $('#methodSel').value = S.method;
 $('#methodSel').onchange = e => { S.method = +e.target.value; store.set('method', S.method); store.set('timingsCache', null); fetchTimings(); };
 $('#transSel').onchange = e => { S.trans[S.lang] = e.target.value; store.set('trans', S.trans); };
 $('#hadithLangSel').value = S.hlang;
-$('#hadithLangSel').onchange = e => { S.hlang = e.target.value; store.set('hlang', S.hlang); loaded.hadith = false; };
+$('#hadithLangSel').onchange = e => { S.hlang = e.target.value; store.set('hlang', S.hlang); store.set('hlangUser', true); loaded.hadith = false; };
 /* ---------- Deutsche Bukhari-Bände: lokal speichern & lesen (privat, nur auf dem Gerät) ---------- */
 const FIU = n => `https://islamische-union.de/wp-content/uploads/2026/05/sahih-al-bukhary-deutsch-band-${n}.pdf`;
-const idb = (() => {
-  let dbp;
-  const open = () => dbp ||= new Promise((res, rej) => {
-    const r = indexedDB.open('nur-pdf', 1);
-    r.onupgradeneeded = () => r.result.createObjectStore('bands');
-    r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
-  });
-  const tx = async (mode, fn) => { const db = await open(); return new Promise((res, rej) => {
-    const t = db.transaction('bands', mode), st = t.objectStore('bands'), q = fn(st);
+let idbP;
+const idbOpen = () => idbP ||= new Promise((res, rej) => {
+  const r = indexedDB.open('nur-pdf', 2);
+  r.onupgradeneeded = () => { const db = r.result;
+    if (!db.objectStoreNames.contains('bands')) db.createObjectStore('bands');
+    if (!db.objectStoreNames.contains('parsed')) db.createObjectStore('parsed'); };
+  r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+});
+const idbStore = name => {
+  const tx = async (mode, fn) => { const db = await idbOpen(); return new Promise((res, rej) => {
+    const t = db.transaction(name, mode), st = t.objectStore(name), q = fn(st);
     t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error); }); };
   return { get: k => tx('readonly', s => s.get(k)), put: (k,v) => tx('readwrite', s => s.put(v,k)),
            del: k => tx('readwrite', s => s.delete(k)), keys: () => tx('readonly', s => s.getAllKeys()) };
-})();
+};
+const idb = idbStore('bands'), idbParsed = idbStore('parsed');
 
 async function renderBands(){
   let have = [];
@@ -922,7 +958,237 @@ $('#pdfIn').onchange = async e => {
     }
     await idb.put(n, f); have.push(n);
   }
-  e.target.value = ''; renderBands();
+  e.target.value = ''; renderBands(); ensureParsed();
+};
+
+/* ---------- Bände in Hadithe zerlegen (auf dem Gerät) ---------- */
+const PARSE_V = 1;
+// Zerlegt einen Band der deutschen Bukhari-Übersetzung (PDF via pdf.js) in Bücher, Kapitel und Hadithe.
+// Läuft im Browser (auf dem Gerät) – der Text verlässt das Gerät nicht.
+async function parseBand(doc, onProgress){
+  const SAW = /ملسو هيلع هللا ىلص/g;
+  const clean = s => s.replace(/[‪-‮‎‏]/g, '').replace(SAW, 'ﷺ');
+
+  // 1) Alle Seiten lesen
+  const pages = [];
+  const sizeCount = {};
+  for (let p = 1; p <= doc.numPages; p++){
+    const page = await doc.getPage(p);
+    const h = page.getViewport({scale:1}).height;
+    const tc = await page.getTextContent();
+    const items = tc.items.filter(i => i.str).map(i => ({
+      s: clean(i.str), x: i.transform[4], y: i.transform[5] / h, w: i.width, size: Math.round(i.height * 2) / 2, font: i.fontName
+    }));
+    items.forEach(i => { i.ws = !i.s.trim(); if (!i.ws) sizeCount[i.size] = (sizeCount[i.size] || 0) + i.s.length; });
+    pages.push(items);
+    if (onProgress && p % 10 === 0) onProgress(p / doc.numPages * 0.6);
+    page.cleanup && page.cleanup();
+  }
+  const body = +Object.entries(sizeCount).sort((a,b) => b[1] - a[1])[0][0];
+
+  // 2) Zeilen bilden (ohne Fußnoten, Kopf-/Fußzeilen)
+  const lines = [];
+  pages.forEach((items, pi) => {
+    const keep = items.filter(i => (i.ws || i.size >= body * 0.9 || i.s.trim() === 'ﷺ') && i.y < 0.91 && i.y > 0.07);
+    keep.sort((a,b) => b.y - a.y);
+    const groups = [];
+    for (const it of keep){
+      const g = groups[groups.length-1];
+      if (g && Math.abs(g.y - it.y) < 0.006) g.items.push(it); else groups.push({y: it.y, items: [it]});
+    }
+    for (const g of groups){
+      g.items.sort((a,b) => a.x - b.x);
+      let cur = null;
+      for (const it of g.items){
+        if (it.ws){ if (cur && !/\s$/.test(cur.text)) cur.text += ' '; continue; }
+        if (cur){
+          const gap = it.x - cur.endX;
+          const needSpace = gap > 1.5 && !/\s$/.test(cur.text) && !/^[\s.,;:!?)\]}“‘»]/.test(it.s);
+          cur.text += (needSpace ? ' ' : '') + it.s;
+          cur.endX = it.x + it.w; if (it.s.trim() !== 'ﷺ') cur.size = Math.max(cur.size, it.size);
+        } else cur = {page: pi, y: g.y, text: it.s, endX: it.x + it.w, size: it.s.trim() === 'ﷺ' ? body : it.size, font: it.font};
+      }
+      if (cur){ cur.text = cur.text.trim(); lines.push(cur); }
+    }
+  });
+  // Schriftart der Fließtextzeilen (für Kapitelzeilen in gleicher Größe, aber anderer Schrift)
+  const fontCount = {};
+  lines.forEach(l => { if (l.size === body) fontCount[l.font] = (fontCount[l.font] || 0) + l.text.length; });
+  const bodyFont = Object.entries(fontCount).sort((a,b) => b[1] - a[1])[0]?.[0];
+
+  // 3) Absätze: neue Zeile beginnt Absatz bei großem Abstand, Überschrift oder Hadith-Marke
+  const lineGap = (() => {
+    const g = [];
+    for (let i = 1; i < lines.length; i++) if (lines[i].page === lines[i-1].page) g.push(lines[i-1].y - lines[i].y);
+    g.sort((a,b) => a - b); return g[Math.floor(g.length * 0.3)] || 0.02;
+  })();
+  const hc = {};
+  const firstHadPage = (lines.find(l => /^\[\d+/.test(l.text)) || {page: 0}).page;
+  lines.forEach(l => { if (l.page >= firstHadPage && l.size > body * 1.05) hc[l.size] = (hc[l.size] || 0) + 1; });
+  const bookSize = Math.max(0, ...Object.entries(hc).filter(([,c]) => c >= 3).map(([s]) => +s)) || body * 1.1;
+  const kf = {};
+  lines.forEach(l => { if (/^\d+\.\s*Kapitel\b/.test(l.text) && l.size === body && l.font !== bodyFont) kf[l.font] = (kf[l.font] || 0) + 1; });
+  const chapFont = Object.entries(kf).sort((a,b) => b[1] - a[1])[0]?.[0];
+  const isHeadingLine = l => l.size > body * 1.05 || (l.size === body && chapFont && l.font === chapFont) ||
+    (/^\d+\.\s*Kapitel\b/.test(l.text) && l.font !== bodyFont);
+  const paras = [];
+  let para = null;
+  lines.forEach((l, i) => {
+    if (/\.{5,}/.test(l.text)) { para = null; return; }               // Inhaltsverzeichnis
+    if (l.page < firstHadPage && l.size > body * 1.05 && !lines.slice(i, i+40).some(x => /^\[\d+/.test(x.text))) { para = null; return; } // Titel/Vorwort
+    const prev = lines[i-1];
+    const startsNew = !para || /^\[\d+[\]–\-\/]/.test(l.text) || isHeadingLine(l) !== para.heading ||
+      (prev && prev.page === l.page && prev.y - l.y > lineGap * 1.45) || (para.heading && l.size !== para.size);
+    if (startsNew){ const hd = isHeadingLine(l); para = {heading: hd, size: l.size, text: l.text,
+      kap: /^\d+\.\s*Kapitel\b/.test(l.text) || (hd && l.size < bookSize * 0.97)}; paras.push(para); }
+    else {
+      // Silbentrennung am Zeilenende auflösen
+      if (/[a-zäöüßḥṣṭẓḍāīū]-$/.test(para.text) && /^[a-zäöüßḥṣṭẓḍāīū]/.test(l.text)) para.text = para.text.slice(0,-1) + l.text;
+      else if (/-$/.test(para.text)) para.text += l.text;
+      else para.text += ' ' + l.text;
+    }
+  });
+  if (onProgress) onProgress(0.8);
+
+  // 4) Struktur aufbauen
+  const books = []; let book = null, chap = null, had = null;
+  const newBook = title => { title = title.replace(/^.{0,30}?Band\s*\d+\s+/, ''); book = {title, chapters: []}; books.push(book); chap = null; had = null; };
+  const ensureChap = () => { if (!book) newBook(''); if (!chap){ chap = {title: '', intro: '', hadiths: []}; book.chapters.push(chap); } };
+  for (const p of paras){
+    const text = p.text.replace(/\s+/g, ' ').trim();
+    if (!text) continue;
+    if (p.kap){
+      if (!had && chap && chap.title && !chap.hadiths.length && !chap.intro && !/^\d+\.\s*Kapitel\b/.test(text)) { chap.title += ' ' + text; continue; }
+      if (!book) newBook(''); chap = {title: text, intro: '', hadiths: []}; book.chapters.push(chap); had = null; continue; }
+    if (p.heading && !/^\[\d+\]/.test(text)){
+      // Fortsetzung einer langen Überschrift?
+      if (!had && chap && chap.title && !chap.hadiths.length && !chap.intro && p.size === body) { chap.title += ' ' + text; continue; }
+      if (!had && book && !book.chapters.length && p.size > body * 1.05) { book.title += ' ' + text; continue; }
+      newBook(text.replace(/^\d+\.\s*/, '')); continue;
+    }
+    const m = text.match(/^((?:\[[\d\s–\-\/,]+\](?:\s*(?:und|,)\s*)?)+)\s*(.*)$/);
+    if (m){
+      ensureChap();
+      const nums = (m[1].match(/\d+/g) || []).map(Number);
+      let all = nums;
+      if (/–|-/.test(m[1]) && nums.length === 2 && nums[1] > nums[0] && nums[1] - nums[0] < 20) all = Array.from({length: nums[1]-nums[0]+1}, (_,k) => nums[0]+k);
+      had = {n: all[0], nums: all, label: all.length > 1 ? all[0] + '–' + all[all.length-1] : String(all[0]), text: m[2]};
+      chap.hadiths.push(had); continue;
+    }
+    if (had) had.text += '\n' + text;
+    else if (chap) chap.intro += (chap.intro ? '\n' : '') + text;
+    else if (book) { ensureChap(); chap.intro += text; }
+  }
+  // leere Bücher/Kapitel (z. B. aus Inhaltsverzeichnis/Vorwort) entfernen
+  const out = books.map(b => ({...b, title: b.title.replace(/^.{0,30}?Band\s*\d+\s*/, '').trim(), chapters: b.chapters.filter(c => c.hadiths.length)})).filter(b => b.chapters.length);
+  if (onProgress) onProgress(1);
+  return out;
+}
+
+const DE = {books: [], byNum: new Map(), nums: [], bands: [], busy: false};
+const useDE = () => S.hlang === 'de' && DE.nums.length > 0;
+async function loadDE(){
+  DE.books = []; DE.byNum = new Map(); DE.bands = [];
+  let keys = []; try{ keys = (await idbParsed.keys()).map(Number).sort((a,b) => a-b); }catch{}
+  for (const k of keys){
+    const rec = await idbParsed.get(k); if (!rec || rec.v !== PARSE_V) continue;
+    DE.bands.push(k);
+    rec.books.forEach(b => {
+      const book = {...b, band: k, idx: DE.books.length};
+      DE.books.push(book);
+      b.chapters.forEach(c => c.hadiths.forEach(h => h.nums.forEach(n => { if (!DE.byNum.has(n)) DE.byNum.set(n, {h, c, book}); })));
+    });
+  }
+  DE.nums = [...DE.byNum.keys()].sort((a,b) => a-b);
+  if (DE.nums.length && !store.get('hlangUser', false) && S.hlang !== 'de'){ S.hlang = 'de'; store.set('hlang', 'de'); $('#hadithLangSel').value = 'de'; }
+}
+async function deStatus(msg){
+  let have = []; try{ have = (await idb.keys()).map(Number); }catch{}
+  $('#deStatus').innerHTML = msg || (DE.bands.length
+    ? `✓ ${DE.bands.length} von 9 Bänden eingelesen · ${DE.nums.length.toLocaleString('de-DE')} Hadithe auf Deutsch` +
+      (DE.bands.length < 9 ? `<br>Fehlende Bände unter „Bände verwalten“ hinzufügen.` : '') +
+      (S.hlang !== 'de' ? `<br>Zum Anzeigen: ⚙️ → Sprache der Hadithe → Deutsch.` : '')
+    : (have.length ? 'Bände werden eingelesen …' : 'Noch keine Bände hinzugefügt – unter „Bände verwalten“ hinzufügen.'));
+  if (!have.length) $('#deDetails').open = true;
+}
+async function ensureParsed(){
+  if (DE.busy) return; DE.busy = true;
+  try{
+    const have = (await idb.keys()).map(Number).sort((a,b) => a-b);
+    const done = new Set();
+    for (const k of await idbParsed.keys()){ const r = await idbParsed.get(k); if (r && r.v === PARSE_V) done.add(+k); }
+    const todo = have.filter(n => !done.has(n));
+    if (todo.length){
+      const lib = await loadPdfJs();
+      for (const [i, n] of todo.entries()){
+        const prog = f => deStatus(`⏳ Band ${n} wird eingelesen … ${Math.round(f*100)} % (${i+1}/${todo.length})<br><span style="font-size:12px">Bitte App geöffnet lassen.</span>`);
+        prog(0);
+        const blob = await idb.get(n);
+        const doc = await lib.getDocument({data: new Uint8Array(await blob.arrayBuffer())}).promise;
+        const books = await parseBand(doc, prog);
+        await idbParsed.put(n, {v: PARSE_V, books});
+        doc.destroy && doc.destroy();
+      }
+      await loadDE();
+      if (current === 'hadith') initHadith(); else loaded.hadith = false;
+    }
+  }catch(e){ deStatus('⚠️ Einlesen fehlgeschlagen. Bitte Internet prüfen und App neu öffnen.'); DE.busy = false; return; }
+  DE.busy = false; deStatus();
+}
+function deCard(entry, wrap = true){
+  const {h, c, book} = entry;
+  const paras = h.text.split('\n').map(p => `<p style="margin:0 0 8px">${esc(p)}</p>`).join('');
+  const inner = `<div class="row" style="justify-content:space-between;margin-bottom:8px;gap:8px">
+      <span class="badge">Bukhari ${esc(h.label)}</span>
+      <span class="muted" style="font-size:12px;text-align:right">${esc(book.title)}</span></div>
+    ${c.title ? `<div class="muted" style="font-size:13px;margin-bottom:8px;font-style:italic">${esc(c.title)}</div>` : ''}
+    <div class="txt" style="white-space:normal">${paras}</div>
+    <div class="row" style="justify-content:space-between;margin-top:4px">
+      <button class="btn ghost small" data-ar="${h.n}">عربي</button>
+      <span class="muted" style="font-size:11px">Übers.: Föderale Islamische Union · Band ${book.band}</span></div>
+    <div class="arabic hidden" id="ar-${h.n}-${Math.random().toString(36).slice(2,7)}"></div>`;
+  return wrap ? `<div class="card hadith">${inner}</div>` : inner;
+}
+function bindArabic(root){
+  root.querySelectorAll('[data-ar]').forEach(b => b.onclick = async () => {
+    const box = b.closest('.hadith, .card').querySelector('.arabic');
+    if (!box.classList.contains('hidden')){ box.classList.add('hidden'); return; }
+    box.classList.remove('hidden'); box.innerHTML = '<div class="loader"></div>';
+    const ar = await fetchArabic(`${b.dataset.ar}.json`);
+    box.textContent = ar?.hadiths?.[0]?.text || t('netErr');
+    box.style.marginTop = '10px';
+  });
+}
+function deFind(n){
+  if (DE.byNum.has(n)) return DE.byNum.get(n);
+  return null;
+}
+async function openDeBook(i){
+  const book = DE.books[i];
+  $('#hadithHome').classList.add('hidden'); $('#hadithBook').classList.remove('hidden'); window.scrollTo(0,0);
+  const blocks = [];
+  book.chapters.forEach(c => { blocks.push({c}); c.hadiths.forEach(h => blocks.push({h, c})); });
+  const count = book.chapters.reduce((a,c) => a + c.hadiths.length, 0);
+  $('#bookBody').innerHTML = `<div class="card"><h2 style="margin:0">${esc(book.title)}</h2>
+    <span class="muted">Band ${book.band} · ${book.chapters.length} Kapitel · ${count} Hadithe</span></div><div id="hList"></div>
+    <div class="center"><button class="btn ghost" id="hMore">${t('more')}</button></div>`;
+  let shown = 0;
+  const more = () => {
+    const html = blocks.slice(shown, shown + 40).map(b => b.h ? deCard({h: b.h, c: {title: ''}, book})
+      : (b.c.title || b.c.intro ? `<div style="margin:18px 4px 10px"><div style="color:var(--gold2);font-size:14.5px;font-weight:600;line-height:1.4">${esc(b.c.title)}</div>
+          ${b.c.intro ? `<div class="muted" style="margin-top:4px;font-style:italic;white-space:pre-line">${esc(b.c.intro)}</div>` : ''}</div>` : '')).join('');
+    $('#hList').insertAdjacentHTML('beforeend', html); bindArabic($('#hList'));
+    shown += 40; $('#hMore').classList.toggle('hidden', shown >= blocks.length);
+  };
+  $('#hMore').onclick = more; more();
+}
+$('#deSearchForm').onsubmit = e => {
+  e.preventDefault();
+  const q = $('#deSearchQ').value.trim().toLowerCase(); if (q.length < 2) return;
+  const res = [];
+  for (const n of DE.nums){ const en = DE.byNum.get(n); if (en.h.n === n && en.h.text.toLowerCase().includes(q)) res.push(en); if (res.length >= 30) break; }
+  $('#deSearchRes').innerHTML = res.length ? `<p class="muted">${res.length >= 30 ? 'Erste 30 Treffer' : res.length + ' Treffer'}</p>` + res.map(en => deCard(en)).join('') : '<p class="muted">Keine Treffer.</p>';
+  bindArabic($('#deSearchRes'));
 };
 
 let pdfjsP = null;
@@ -996,7 +1262,7 @@ $('#pdfSearch').onsubmit = async e => {
   $('#pdfMsg').textContent = 'Nicht gefunden.';
 };
 $('#pdfClose').onclick = () => { $('#pdfView').classList.add('hidden'); document.body.style.overflow = ''; pdfObs?.disconnect(); $('#pdfPages').innerHTML=''; pdfDoc = null; };
-renderBands();
+renderBands(); loadDE().then(() => { deStatus(); ensureParsed(); });
 const applyFont = () => document.documentElement.style.setProperty('--arsize', S.arsize + 'px');
 $('#fontRange').value = S.arsize;
 $('#fontRange').oninput = e => { S.arsize = +e.target.value; store.set('arsize', S.arsize); applyFont(); };
