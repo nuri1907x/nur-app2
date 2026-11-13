@@ -139,6 +139,9 @@ main{padding:6px 16px 24px;max-width:720px;margin:0 auto}
 .ib:active{transform:scale(.92)}
 .ib svg{width:18px;height:18px}
 .ib.on{color:var(--gold2);background:var(--hl)}
+.ib[data-fav].on{color:#E0607E;background:rgba(224,96,126,.14)}
+.ib[data-fav].on svg path{fill:currentColor}
+[data-theme]:not([data-theme="sand"]) .leaflet-tile-pane{filter:invert(1) hue-rotate(180deg) brightness(.85) contrast(.9) saturate(.6)}
 .toast{position:fixed;left:50%;bottom:calc(100px + var(--safe-b));transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:14px;font-size:14px;font-weight:600;z-index:60;animation:pop .2s ease}
 .votd .arabic{font-family:var(--ar);font-size:26px;line-height:2;direction:rtl;text-align:right}
 .votd .tr{margin-top:8px;line-height:1.65;opacity:.9}
@@ -240,6 +243,41 @@ nav.tabs button{flex:1;display:flex;flex-direction:column;align-items:center;gap
 nav.tabs button svg{width:23px;height:23px}
 nav.tabs button.on{color:var(--gold2);background:var(--hl)}
 
+.tile-ic{width:40px;height:40px;border-radius:13px;background:var(--hl);display:grid;place-items:center;font-size:20px;flex:none}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.chip{padding:8px 14px;border-radius:999px;background:var(--card2);font-size:14px;font-weight:600;color:var(--muted)}
+.chip.on{background:var(--gold);color:var(--onaccent)}
+.dhikr-row{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;margin:0 -16px;padding-left:16px;scrollbar-width:none}
+.dhikr-row::-webkit-scrollbar{display:none}
+.dhikr-row button{flex:none;padding:9px 14px;border-radius:14px;background:var(--card);box-shadow:var(--shadow);font-size:13.5px;font-weight:600;color:var(--muted);white-space:nowrap}
+.dhikr-row button.on{background:var(--gold);color:var(--onaccent)}
+.tb-tap{position:relative;width:236px;height:236px;margin:16px auto 18px;display:block;border-radius:50%;transition:transform .08s}
+.tb-tap:active{transform:scale(.96)}
+.tb-tap .ring{position:absolute;inset:0}
+.tb-in{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 50% 30%, var(--hero1), var(--card2));display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px var(--line)}
+#tbCount{font-size:64px;font-weight:200;font-variant-numeric:tabular-nums;color:var(--gold2);line-height:1}
+.dcard .arabic{font-family:var(--ar);font-size:26px;line-height:2;direction:rtl;text-align:right}
+.dcard .tl{font-style:italic;color:var(--gold2);margin-top:6px;font-size:14.5px;line-height:1.55}
+.dcard .tr{margin-top:8px;line-height:1.6;opacity:.9}
+.dcard .foot{display:flex;align-items:center;gap:8px;margin-top:12px}
+.cnt-btn{min-width:64px;height:36px;border-radius:12px;background:var(--gold);color:var(--onaccent);font-weight:800;font-variant-numeric:tabular-nums}
+.cnt-btn.done{background:var(--card2);color:var(--gold2)}
+.name-row{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
+.name-row:last-child{border-bottom:0}
+.name-row .nar{font-family:var(--ar);font-size:24px;color:var(--gold2);min-width:96px;text-align:right}
+.flash{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;cursor:pointer;user-select:none}
+.flash .nar{font-family:var(--ar);font-size:56px;color:var(--gold2);line-height:1.5}
+.juz-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.juz-row:last-child{border-bottom:0}
+.juz-row.today{background:var(--hl);border-radius:14px;padding:11px 10px;margin:0 -8px;border-bottom-color:transparent}
+.jck{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;flex:none}
+.jck svg{width:15px;height:15px;opacity:0}
+.jck.on{background:var(--gold);border-color:var(--gold);color:var(--onaccent)}
+.jck.on svg{opacity:1}
+.zk-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.zk-grid .field label{font-size:12px}
+.leaflet-container{background:var(--card2)!important;font-family:var(--ui)!important}
+
 /* ---------- Einstellungen (gruppiert) ---------- */
 .group-label{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;margin:18px 6px 8px}
 .group{background:var(--card);border-radius:20px;box-shadow:var(--shadow);overflow:hidden;margin-bottom:6px}
@@ -311,6 +349,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
       </form>
       <div class="err" id="prayerErr"></div>
     </div>
+    <button class="card row" style="width:100%;text-align:left" onclick="show('ics')"><span class="tile-ic">🔔</span><span style="flex:1"><b data-t="reminders"></b><br><span class="muted" data-t="remindersShort"></span></span><span class="muted">›</span></button>
     <div class="card">
       <h2 data-t="qibla"></h2>
       <div class="compass-wrap">
@@ -351,6 +390,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
       <div class="sticky-top row" style="justify-content:space-between">
         <button class="btn ghost small" id="backSurah">‹ <span data-t="back"></span></button>
         <div class="row">
+          <button class="btn small" id="playSurah">▶ <span data-t="playSurah"></span></button>
           <button class="btn ghost small" id="prevSurah">‹</button>
           <button class="btn ghost small" id="nextSurah">›</button>
         </div>
@@ -410,7 +450,8 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 
   <!-- KALENDER -->
   <section class="view" id="v-calendar">
-    <div class="page-head"><div><h1 class="ptitle" data-t="ptCalendar"></h1><div class="psub" data-t="psCalendar"></div></div></div>
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="ptCalendar"></h1><div class="psub" data-t="psCalendar"></div></div></div>
     <div class="card hero" id="hijriHero"></div>
     <div class="card" id="ramadanCard"></div>
     <div class="card">
@@ -426,6 +467,119 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
       <div id="eventsList"></div>
       <p class="muted" data-t="moonNote"></p>
     </div>
+  </section>
+
+
+  <!-- MEHR -->
+  <section class="view" id="v-more">
+    <div class="page-head"><div><h1 class="ptitle" data-t="tabMore"></h1><div class="psub" data-t="psMore"></div></div></div>
+    <div class="tiles" id="moreGrid"></div>
+  </section>
+
+  <!-- TASBIH -->
+  <section class="view" id="v-tasbih">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle">Tasbih</h1><div class="psub" data-t="psTasbih"></div></div></div>
+    <div class="dhikr-row" id="dhikrRow"></div>
+    <div class="card center" style="padding:22px 18px">
+      <div id="tbAr" style="font-family:var(--ar);font-size:32px;line-height:1.6"></div>
+      <div id="tbTr" class="muted"></div>
+      <button id="tbTap" class="tb-tap" aria-label="+1">
+        <svg class="ring" viewBox="0 0 208 208"><circle class="trk" cx="104" cy="104" r="96"/><circle class="prg" id="tbRing" cx="104" cy="104" r="96" stroke-dasharray="603.2" stroke-dashoffset="603.2"/></svg>
+        <span class="tb-in"><span id="tbCount">0</span><span id="tbGoal" class="muted"></span></span>
+      </button>
+      <div class="row" style="justify-content:center;gap:8px;flex-wrap:wrap">
+        <div class="seg" id="tbGoals" style="margin:0;flex:1;max-width:280px"><button data-g="33">33</button><button data-g="99">99</button><button data-g="100">100</button><button data-g="0">∞</button></div>
+        <button class="btn ghost small" id="tbReset">↺</button>
+      </div>
+      <div class="muted" id="tbTotal" style="margin-top:12px"></div>
+    </div>
+    <div class="card"><div class="row" style="justify-content:space-between"><div><b data-t="afterPrayer"></b><div class="muted" data-t="afterPrayerSub"></div></div>
+      <button class="btn small" id="tbAfter" data-t="start"></button></div></div>
+  </section>
+
+  <!-- ADHKAR -->
+  <section class="view" id="v-adhkar">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="adhkarTitle"></h1><div class="psub" data-t="psAdhkar"></div></div></div>
+    <div class="seg" id="adhSeg"><button data-w="morning" data-t="morning"></button><button data-w="evening" data-t="evening"></button></div>
+    <div id="adhList"></div>
+  </section>
+
+  <!-- DUAS -->
+  <section class="view" id="v-duas">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle">Duʿās</h1><div class="psub" data-t="psDuas"></div></div></div>
+    <div class="chips" id="duaCats"></div>
+    <div id="duaList"></div>
+  </section>
+
+  <!-- 99 NAMEN -->
+  <section class="view" id="v-names">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="namesTitle"></h1><div class="psub">al-Asmāʾ al-Ḥusnā</div></div></div>
+    <div class="seg" id="namesSeg"><button class="on" data-m="list" data-t="list"></button><button data-m="cards" data-t="flashcards"></button></div>
+    <div id="namesBody"></div>
+  </section>
+
+  <!-- FAVORITEN -->
+  <section class="view" id="v-favs">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="favs"></h1><div class="psub" data-t="psFavs"></div></div></div>
+    <div id="favList"></div>
+  </section>
+
+  <!-- KHATM -->
+  <section class="view" id="v-khatm">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="khatm"></h1><div class="psub" data-t="psKhatm"></div></div></div>
+    <div id="khatmBody"></div>
+  </section>
+
+  <!-- MOSCHEEN -->
+  <section class="view" id="v-mosques">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="mosques"></h1><div class="psub" data-t="psMosques"></div></div></div>
+    <div class="seg" id="mqRadius"><button data-r="2000">2 km</button><button class="on" data-r="5000">5 km</button><button data-r="10000">10 km</button></div>
+    <div class="card" style="padding:0;overflow:hidden"><div id="mqMap" style="height:260px;background:var(--card2)"></div></div>
+    <div class="card list" id="mqList"></div>
+  </section>
+
+  <!-- ZAKAT -->
+  <section class="view" id="v-zakat">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="zakat"></h1><div class="psub" data-t="psZakat"></div></div></div>
+    <div class="card">
+      <div class="row" style="gap:8px;margin-bottom:12px">
+        <div class="seg" id="zkCur" style="margin:0;flex:1"><button data-c="EUR">€ EUR</button><button data-c="TRY">₺ TRY</button><button data-c="USD">$ USD</button></div>
+      </div>
+      <div class="field"><label data-t="zkNisabStd"></label><div class="seg" id="zkStd" style="margin:0"><button data-g="85">85 g</button><button data-g="80.18">80,18 g (Diyanet)</button></div></div>
+      <div class="field"><label><span data-t="zkGoldPrice"></span> <span class="muted" id="zkPriceInfo"></span></label><input id="zkGram" type="number" inputmode="decimal" step="0.01"></div>
+      <div class="zk-grid">
+        <div class="field"><label data-t="zkCash"></label><input data-zk="cash" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkGold"></label><input data-zk="goldg" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkSilver"></label><input data-zk="silverv" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkInvest"></label><input data-zk="invest" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkClaims"></label><input data-zk="claims" type="number" inputmode="decimal" placeholder="0"></div>
+        <div class="field"><label data-t="zkDebts"></label><input data-zk="debts" type="number" inputmode="decimal" placeholder="0"></div>
+      </div>
+    </div>
+    <div class="card hero" id="zkResult"></div>
+    <p class="muted" data-t="zkNote" style="padding:0 6px"></p>
+  </section>
+
+  <!-- KALENDER-EXPORT -->
+  <section class="view" id="v-ics">
+    <div class="sticky-top"><button class="btn ghost small" data-back>‹ <span data-t="tabMore"></span></button></div>
+    <div class="page-head" style="padding-top:0"><div><h1 class="ptitle" data-t="reminders"></h1><div class="psub" data-t="psReminders"></div></div></div>
+    <div class="card">
+      <div class="field"><label data-t="whichPrayers"></label><div class="chips" id="icsPrayers"></div></div>
+      <div class="field"><label data-t="remindBefore"></label><div class="seg" id="icsBefore" style="margin:0"><button data-m="0">0</button><button class="on" data-m="10">10 min</button><button data-m="15">15 min</button><button data-m="30">30 min</button></div></div>
+      <div class="field"><label data-t="howManyDays"></label><div class="seg" id="icsDays" style="margin:0"><button class="on" data-d="30">30</button><button data-d="60">60</button><button data-d="90">90</button></div></div>
+      <button class="btn" id="icsGo" style="width:100%" data-t="createCal"></button>
+      <div class="muted" id="icsMsg" style="margin-top:10px"></div>
+    </div>
+    <div class="card"><h2 data-t="howItWorks"></h2><p class="muted" style="margin:0" data-t="icsHow"></p></div>
   </section>
 
   <!-- EINSTELLUNGEN -->
@@ -452,7 +606,15 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
           <option value="12">UOIF (Frankreich)</option>
         </select></div></div>
     <div class="group-label" data-t="tabQuran"></div>
-    <div class="group"><div class="gi"><label data-t="translation"></label><select id="transSel"></select></div></div>
+    <div class="group"><div class="gi"><label data-t="translation"></label><select id="transSel"></select></div>
+      <div class="gi"><label data-t="reciter"></label><select id="reciterSel">
+        <option value="ar.alafasy">Mishary Rashid Alafasy</option>
+        <option value="ar.abdurrahmaansudais">Abdurrahman as-Sudais</option>
+        <option value="ar.abdulbasitmurattal">Abdul Basit (Murattal)</option>
+        <option value="ar.husary">Mahmoud Khalil al-Husary</option>
+        <option value="ar.minshawi">Muhammad Siddiq al-Minshawi</option>
+        <option value="ar.mahermuaiqly">Maher al-Muaiqly</option>
+      </select></div></div>
     <div class="group-label" data-t="tabHadith"></div>
     <div class="group"><div class="gi"><label data-t="hadithLang"></label>
         <select id="hadithLangSel">
@@ -490,11 +652,12 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
   <button data-view="prayer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3c-2 2-5 3-5 7v10h10V10c0-4-3-5-5-7z"/><path d="M4 20h16M10 20v-4a2 2 0 0 1 4 0v4"/></svg><span data-t="tabPrayer"></span></button>
   <button data-view="quran"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2z"/><path d="M4 21V5M9 8h6M9 12h6"/></svg><span data-t="tabQuran"></span></button>
   <button data-view="hadith"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 4h10l6 6v10H4z"/><path d="M14 4v6h6M8 14h8M8 17h5"/></svg><span data-t="tabHadith"></span></button>
-  <button data-view="calendar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span data-t="tabCalendar"></span></button>
+  <button data-view="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="2"/></svg><span data-t="tabMore"></span></button>
 </nav>
 
 <audio id="player" preload="none"></audio>
 
+<script src="data/content.js"></script>
 <script>
 /* =========================================================
    Yüsra – islamische PWA (Gebetszeiten, Qibla, Koran, Hadith, Kalender)
@@ -503,7 +666,7 @@ input[type=range]{accent-color:var(--gold);background:none;padding:0}
 // ---------- Übersetzungen ----------
 const I18N = {
   de: {
-    tabToday:'Heute', myPrayers:'Meine Gebete heute', streakTxt:'🔥 {n} Tage in Folge alle Gebete', streakNone:'Hake deine Gebete ab – Tag für Tag.', votd:'Vers des Tages', until:'bis {p}', at:'um {t}', greetM:'Guten Morgen', greetD:'Guten Tag', greetE:'Guten Abend', jumua:'Dschumʿa Mubārak', copied:'Kopiert ✓', share:'Teilen', open:'Öffnen', continueRead:'Weiterlesen', nextEvent:'Nächster besonderer Tag', startQuran:'Koran beginnen', tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
+    tabToday:'Heute', tabMore:'Mehr', psMore:'Alle Funktionen', playSurah:'Sure', reciter:'Rezitator', psTasbih:'Tippe auf den Kreis zum Zählen', afterPrayer:'Tasbih nach dem Gebet', afterPrayerSub:'33× Subḥānallāh · 33× Al-ḥamdu lillāh · 34× Allāhu akbar', start:'Start', todayTotal:'Heute insgesamt: {n}', adhkarTitle:'Adhkar', psAdhkar:'Morgen- & Abendgedenken', morning:'Morgen', evening:'Abend', psDuas:'Bittgebete für den Alltag', all:'Alle', namesTitle:'99 Namen Allahs', list:'Liste', flashcards:'Lernkarten', tapToFlip:'Tippen zum Umdrehen', next:'Weiter', favs:'Favoriten', psFavs:'Gemerkte Verse & Hadithe', noFavs:'Noch keine Favoriten. Tippe bei einem Vers oder Hadith auf ♡.', khatm:'Khatm-Plan', psKhatm:'Den ganzen Koran in 30 Tagen', khatmStart:'Plan starten', khatmToday:'Heute: Juz {n}', khatmDone:'{n} von 30 Juz gelesen', khatmReset:'Plan neu starten', khatmFinished:'Māšāʾallāh – Khatm abgeschlossen! 🎉', read:'Lesen', mosques:'Moscheen', psMosques:'In deiner Nähe', noMosques:'Keine Moscheen im Umkreis gefunden.', mosque:'Moschee', zakat:'Zakat-Rechner', psZakat:'2,5 % auf zakatpflichtiges Vermögen', zkNisabStd:'Nisab (Gold)', zkGoldPrice:'Goldpreis pro Gramm', zkCash:'Bargeld & Konten', zkGold:'Gold (Gramm)', zkSilver:'Silber (Wert)', zkInvest:'Aktien & Anlagen', zkClaims:'Forderungen', zkDebts:'Fällige Schulden', zkNote:'Zakat ist fällig, wenn das Vermögen ein volles Mondjahr über dem Nisab lag. Dies ist eine Orientierungshilfe – bei Fragen wende dich an einen Gelehrten. Keine Finanzberatung.', zkDue:'Deine Zakat', zkNotDue:'Unter dem Nisab – keine Zakat fällig', zkNet:'Zakatpflichtiges Vermögen', zkNisab:'Nisab', zkLive:'(live, Stand {t})', zkManual:'(bitte eingeben)', reminders:'Gebets-Erinnerungen', remindersShort:'Gebetszeiten in den iPhone-Kalender', psReminders:'Erinnerungen über den iPhone-Kalender', whichPrayers:'Welche Gebete?', remindBefore:'Erinnerung vorher', howManyDays:'Wie viele Tage?', createCal:'Kalenderdatei erstellen', howItWorks:'So funktioniert’s', icsHow:'Tippe auf „Kalenderdatei erstellen“. Im Teilen-Menü „Kalender“ bzw. die Datei öffnen und „Alle hinzufügen“ wählen. Am besten einen eigenen Kalender „Gebet“ anlegen – so kannst du ihn später einfach löschen und neu importieren.', icsReady:'✓ {n} Termine erstellt', fav:'Merken', myPrayers:'Meine Gebete heute', streakTxt:'🔥 {n} Tage in Folge alle Gebete', streakNone:'Hake deine Gebete ab – Tag für Tag.', votd:'Vers des Tages', until:'bis {p}', at:'um {t}', greetM:'Guten Morgen', greetD:'Guten Tag', greetE:'Guten Abend', jumua:'Dschumʿa Mubārak', copied:'Kopiert ✓', share:'Teilen', open:'Öffnen', continueRead:'Weiterlesen', nextEvent:'Nächster besonderer Tag', startQuran:'Koran beginnen', tabPrayer:'Gebet', tabQuran:'Koran', tabHadith:'Hadith', tabCalendar:'Kalender', ptPrayer:'Gebetszeiten', ptQuran:'Koran', psQuran:'114 Suren · Arabisch & Übersetzung', ptHadith:'Hadith', ptCalendar:'Kalender', psCalendar:'Hijri-Kalender & Ramadan', segSurahs:'Suren', segSearch:'Suche', segToday:'Heute', segBooks:'Bücher', textSearch:'Im Text suchen', design:'Design', light:'Hell', dark:'Dunkel', appearance:'Darstellung', info:'Info', readMore:'Weiterlesen', readLess:'Weniger', themeNames:['Sand','Mokka','Nacht','Schwarz'],
     todayTimes:'Gebetszeiten heute', useLocation:'📍 Standort verwenden', enterCity:'Stadt eingeben',
     city:'Stadt (z. B. Berlin)', country:'Land', save:'Speichern', nextPrayer:'Nächstes Gebet', in:'in',
     qibla:'Qibla-Richtung', startCompass:'Kompass starten', compassHint:'iPhone flach halten, fern von Magneten.',
@@ -532,7 +695,7 @@ const I18N = {
     weekdays:['Mo','Di','Mi','Do','Fr','Sa','So'], locale:'de-DE'
   },
   tr: {
-    tabToday:'Bugün', myPrayers:'Bugünkü namazlarım', streakTxt:'🔥 {n} gündür tüm namazlar', streakNone:'Namazlarını işaretle – her gün.', votd:'Günün ayeti', until:'{p} vaktine', at:'{t}', greetM:'Günaydın', greetD:'İyi günler', greetE:'İyi akşamlar', jumua:'Hayırlı Cumalar', copied:'Kopyalandı ✓', share:'Paylaş', open:'Aç', continueRead:'Okumaya devam', nextEvent:'Sıradaki mübarek gün', startQuran:'Kur’an’a başla', tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
+    tabToday:'Bugün', tabMore:'Daha fazla', psMore:'Tüm özellikler', playSurah:'Sure', reciter:'Kâri', psTasbih:'Saymak için daireye dokun', afterPrayer:'Namaz sonrası tesbihat', afterPrayerSub:'33× Sübhânallah · 33× Elhamdülillah · 34× Allâhu ekber', start:'Başla', todayTotal:'Bugün toplam: {n}', adhkarTitle:'Ezkâr', psAdhkar:'Sabah & akşam zikirleri', morning:'Sabah', evening:'Akşam', psDuas:'Günlük dualar', all:'Tümü', namesTitle:'Esmâ-i Hüsnâ', list:'Liste', flashcards:'Kartlar', tapToFlip:'Çevirmek için dokun', next:'Sonraki', favs:'Favoriler', psFavs:'Kaydedilen ayet & hadisler', noFavs:'Henüz favori yok. Bir ayet veya hadiste ♡ simgesine dokun.', khatm:'Hatim planı', psKhatm:'30 günde Kur’an-ı Kerim', khatmStart:'Planı başlat', khatmToday:'Bugün: {n}. cüz', khatmDone:'30 cüzden {n} okundu', khatmReset:'Planı yeniden başlat', khatmFinished:'Maşallah – Hatim tamamlandı! 🎉', read:'Oku', mosques:'Camiler', psMosques:'Yakınındaki camiler', noMosques:'Yakında cami bulunamadı.', mosque:'Cami', zakat:'Zekât hesaplama', psZakat:'Zekâta tabi servetin %2,5’i', zkNisabStd:'Nisap (altın)', zkGoldPrice:'Altının gram fiyatı', zkCash:'Nakit & hesaplar', zkGold:'Altın (gram)', zkSilver:'Gümüş (değer)', zkInvest:'Hisse & yatırımlar', zkClaims:'Alacaklar', zkDebts:'Vadesi gelmiş borçlar', zkNote:'Servet bir kamerî yıl boyunca nisabın üzerinde kaldıysa zekât farz olur. Bu bir yardımcı hesaptır – sorularınız için bir âlime danışın. Finansal tavsiye değildir.', zkDue:'Zekâtın', zkNotDue:'Nisabın altında – zekât gerekmez', zkNet:'Zekâta tabi servet', zkNisab:'Nisap', zkLive:'(canlı, {t})', zkManual:'(lütfen girin)', reminders:'Namaz hatırlatıcıları', remindersShort:'Namaz vakitlerini iPhone takvimine ekle', psReminders:'iPhone takvimi ile hatırlatma', whichPrayers:'Hangi vakitler?', remindBefore:'Ne kadar önce?', howManyDays:'Kaç gün?', createCal:'Takvim dosyası oluştur', howItWorks:'Nasıl çalışır', icsHow:'“Takvim dosyası oluştur”a dokun. Paylaş menüsünde “Takvim”i seç veya dosyayı aç ve “Tümünü ekle”ye dokun. En iyisi “Namaz” adında ayrı bir takvim oluştur – sonra kolayca silip yeniden ekleyebilirsin.', icsReady:'✓ {n} etkinlik oluşturuldu', fav:'Kaydet', myPrayers:'Bugünkü namazlarım', streakTxt:'🔥 {n} gündür tüm namazlar', streakNone:'Namazlarını işaretle – her gün.', votd:'Günün ayeti', until:'{p} vaktine', at:'{t}', greetM:'Günaydın', greetD:'İyi günler', greetE:'İyi akşamlar', jumua:'Hayırlı Cumalar', copied:'Kopyalandı ✓', share:'Paylaş', open:'Aç', continueRead:'Okumaya devam', nextEvent:'Sıradaki mübarek gün', startQuran:'Kur’an’a başla', tabPrayer:'Namaz', tabQuran:'Kur’an', tabHadith:'Hadis', tabCalendar:'Takvim', ptPrayer:'Namaz Vakitleri', ptQuran:'Kur’an-ı Kerim', psQuran:'114 sure · Arapça & meal', ptHadith:'Hadis', ptCalendar:'Takvim', psCalendar:'Hicri takvim & Ramazan', segSurahs:'Sureler', segSearch:'Arama', segToday:'Bugün', segBooks:'Kitaplar', textSearch:'Metinde ara', design:'Tema', light:'Açık', dark:'Koyu', appearance:'Görünüm', info:'Bilgi', readMore:'Devamını oku', readLess:'Daha az', themeNames:['Kum','Moka','Gece','Siyah'],
     todayTimes:'Bugünün namaz vakitleri', useLocation:'📍 Konumu kullan', enterCity:'Şehir gir',
     city:'Şehir (örn. İstanbul)', country:'Ülke', save:'Kaydet', nextPrayer:'Sonraki vakit', in:'kalan',
     qibla:'Kıble yönü', startCompass:'Pusulayı başlat', compassHint:'Telefonu düz tutun, mıknatıslardan uzak durun.',
@@ -652,6 +815,7 @@ function applyLang(){
 function setLang(l){
   S.lang = l; store.set('lang', l); autoHadithLang(); applyLang();
   renderPrayer(); renderSurahList(); renderCalendar(); renderToday(); renderVotd(); renderTodayHadith(); loaded.hadith = false;
+  if (current !== 'today' && typeof show === 'function') show(current);
   if (current === 'hadith') initHadith();
   if (!$('#quranReader').classList.contains('hidden') && openSurah) loadSurah(openSurah);
 }
@@ -696,12 +860,15 @@ const loaded = {};
 function show(view){
   current = view;
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'v-'+view));
-  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === view));
+  const tab = ['today','prayer','quran','hadith'].includes(view) ? view : (view === 'settings' ? '' : 'more');
+  document.querySelectorAll('nav.tabs button').forEach(b => b.classList.toggle('on', b.dataset.view === tab));
   window.scrollTo(0,0);
   if (view === 'quran' && !loaded.quran) initQuran();
   if (view === 'hadith' && !loaded.hadith) initHadith();
   if (view === 'calendar') renderCalendar();
   if (view === 'today') renderToday();
+  const R = {more: renderMore, tasbih: renderTasbih, adhkar: renderAdhkar, duas: renderDuas, names: renderNames, favs: renderFavs, khatm: renderKhatm, mosques: initMosques, zakat: initZakat, ics: renderIcs};
+  if (R[view]) R[view]();
 }
 document.querySelectorAll('nav.tabs button').forEach(b => b.onclick = () => show(b.dataset.view));
 $('#setBtn').onclick = () => show(current === 'settings' ? 'today' : 'settings');
@@ -950,6 +1117,7 @@ async function loadSurah(n, scrollTo){
         <span class="badge">${n}:${a.numberInSurah}</span><span style="flex:1"></span>
         <button class="ib" data-play="${a.number}" aria-label="Play"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5z"/></svg></button>
         <button class="ib ${isLast ? 'on' : ''}" data-mark="${a.numberInSurah}" aria-label="${t('markRead')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M6 3.5h12v17l-6-4-6 4z"/></svg></button>
+        <button class="ib" data-fav="q:${n}:${a.numberInSurah}" data-ftitle="${esc(info.englishName)} ${n}:${a.numberInSurah}">${ICON_HEART}</button>
         <button class="ib" data-share="${esc(info.englishName)} ${n}:${a.numberInSurah}" aria-label="${t('share')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5"/><path d="M5 12v7.5h14V12"/></svg></button>
       </div></div>`;
   }).join('');
@@ -973,8 +1141,14 @@ const player = $('#player'); let playingBtn = null;
 function playAyah(globalNo, btn){
   if (playingBtn === btn && !player.paused){ player.pause(); btn.innerHTML = ICON_PLAY; return; }
   if (playingBtn) playingBtn.innerHTML = ICON_PLAY;
-  player.src = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalNo}.mp3`;
+  let tryI = 0;
+  player.src = audioSrc(globalNo, 0);
+  player.onerror = () => { if (++tryI < 3){ player.src = audioSrc(globalNo, tryI); player.play().catch(()=>{}); } else { btn.innerHTML = ICON_PLAY; toast(t('netErr')); } };
   player.play().catch(()=>{}); btn.innerHTML = ICON_PAUSE; playingBtn = btn;
+  try{
+    const ay = btn.closest('.ayah')?.id.replace('ayah-', ''), sname = surahs[openSurah-1]?.englishName || '';
+    if ('mediaSession' in navigator) navigator.mediaSession.metadata = new MediaMetadata({title: `${sname} ${openSurah}:${ay}`, artist: $('#reciterSel').selectedOptions[0]?.text || '', album: 'Yüsra', artwork: [{src: 'icon-512.png', sizes: '512x512', type: 'image/png'}]});
+  }catch{}
   player.onended = () => {
     btn.innerHTML = ICON_PLAY;
     const next = document.querySelector(`[data-play="${globalNo+1}"]`);
@@ -1009,7 +1183,7 @@ function hadithCard(h, ar, fallback){
     ${arText ? `<div class="arabic">${esc(arText)}</div>` : ''}
     <div class="txt">${esc(h.text)}</div>
     ${fallback ? `<div class="muted" style="margin-top:6px">${t('hadithFallback')}</div>` : ''}
-    <div class="row" style="justify-content:flex-end;margin-top:8px"><button class="ib" data-share="Sahih al-Bukhari ${h.hadithnumber}">${ICON_SHARE}</button></div>
+    <div class="row" style="justify-content:flex-end;margin-top:8px;gap:8px"><button class="ib" data-fav="h:${h.hadithnumber}" data-ftitle="Bukhari ${h.hadithnumber}">${ICON_HEART}</button><button class="ib" data-share="Sahih al-Bukhari ${h.hadithnumber}">${ICON_SHARE}</button></div>
   </div>`;
 }
 
@@ -1426,7 +1600,7 @@ function deCard(entry, wrap = true){
     ${c.title ? `<div class="muted" style="font-size:13px;margin-bottom:8px;font-style:italic">${esc(c.title)}</div>` : ''}
     <div class="txt" style="white-space:normal">${paras}</div>
     <div class="row" style="justify-content:space-between;margin-top:4px">
-      <div class="row" style="gap:8px"><button class="btn ghost small" data-ar="${h.n}">عربي</button><button class="ib" data-share="Sahih al-Bukhari ${esc(h.label)} – Übers. © Föderale Islamische Union e.V.">${ICON_SHARE}</button></div>
+      <div class="row" style="gap:8px"><button class="btn ghost small" data-ar="${h.n}">عربي</button><button class="ib" data-fav="h:${h.n}" data-ftitle="Bukhari ${esc(h.label)}">${ICON_HEART}</button><button class="ib" data-share="Sahih al-Bukhari ${esc(h.label)} – Übers. © Föderale Islamische Union e.V.">${ICON_SHARE}</button></div>
       <span class="muted" style="font-size:11px;text-align:right">© Föderale Islamische Union e.V. · Band ${book.band}</span></div>
     <div class="arabic hidden" id="ar-${h.n}-${Math.random().toString(36).slice(2,7)}"></div>`;
   return wrap ? `<div class="card hadith">${inner}</div>` : inner;
@@ -1639,6 +1813,7 @@ async function renderVotd(){
     const [a, tr] = r.data;
     box.innerHTML = `<h2>${t('votd')}</h2><div class="arabic">${esc(a.text)}</div><div class="tr">${esc(tr.text)}</div>
       <div class="row" style="margin-top:12px"><span class="badge">${esc(a.surah.englishName)} ${a.surah.number}:${a.numberInSurah}</span><span style="flex:1"></span>
+      <button class="ib" data-fav="q:${a.surah.number}:${a.numberInSurah}" data-ftitle="${esc(a.surah.englishName)} ${a.surah.number}:${a.numberInSurah}">${ICON_HEART}</button>
       <button class="ib" data-share="${esc(a.surah.englishName)} ${a.surah.number}:${a.numberInSurah}">${ICON_SHARE}</button>
       <button class="btn ghost small" id="votdOpen">${t('open')} ›</button></div>`;
     $('#votdOpen').onclick = async () => { show('quran'); if (!surahs.length) await initQuran(); loadSurah(a.surah.number, a.numberInSurah); };
@@ -1658,6 +1833,347 @@ function renderToday(){
   $('#greetDate').textContent = fmtDate(now, {weekday:'long', day:'numeric', month:'long'}) + ' · ' + hijriStr(hijri(now));
   renderTracker(); renderTiles();
 }
+
+
+/* =========================================================
+   MEHR – Funktionen-Übersicht & Unterseiten
+   ========================================================= */
+const MORE = [
+  {v:'calendar', ic:'🗓️', de:'Kalender', tr:'Takvim', sde:'Hijri & Ramadan', str:'Hicri & Ramazan'},
+  {v:'tasbih', ic:'📿', de:'Tasbih', tr:'Tesbih', sde:'Digitaler Zähler', str:'Dijital zikirmatik'},
+  {v:'adhkar', ic:'🌅', de:'Adhkar', tr:'Ezkâr', sde:'Morgen & Abend', str:'Sabah & akşam'},
+  {v:'duas', ic:'🤲', de:'Duʿās', tr:'Dualar', sde:'Für den Alltag', str:'Günlük dualar'},
+  {v:'names', ic:'✨', de:'99 Namen', tr:'Esmâ-i Hüsnâ', sde:'Mit Lernkarten', str:'Kartlarla öğren'},
+  {v:'favs', ic:'❤️', de:'Favoriten', tr:'Favoriler', sde:'Gemerkte Inhalte', str:'Kaydedilenler'},
+  {v:'khatm', ic:'📖', de:'Khatm-Plan', tr:'Hatim planı', sde:'Koran in 30 Tagen', str:'30 günde Kur’an'},
+  {v:'mosques', ic:'🕌', de:'Moscheen', tr:'Camiler', sde:'In der Nähe', str:'Yakınında'},
+  {v:'zakat', ic:'💰', de:'Zakat', tr:'Zekât', sde:'Rechner', str:'Hesaplama'},
+  {v:'ics', ic:'🔔', de:'Erinnerungen', tr:'Hatırlatıcılar', sde:'Gebete im Kalender', str:'Takvime ekle'}
+];
+function renderMore(){
+  const tr = S.lang === 'tr';
+  $('#moreGrid').innerHTML = MORE.map(m => `<button class="tile" data-go="${m.v}"><span class="tile-ic">${m.ic}</span>
+    <span class="tv" style="font-size:17px">${tr ? m.tr : m.de}</span><span class="tl">${tr ? m.str : m.sde}</span></button>`).join('');
+  $('#moreGrid').querySelectorAll('[data-go]').forEach(b => b.onclick = () => show(b.dataset.go));
+}
+document.querySelectorAll('[data-back]').forEach(b => b.onclick = () => show('more'));
+const today = () => ymd(new Date());
+const lng = () => S.lang === 'tr' ? 'tr' : 'de';
+
+/* ---------- Favoriten ---------- */
+const ICON_HEART = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 20s-7.5-4.6-9.2-9.4C1.6 7.2 3.9 4 7.2 4c2 0 3.6 1.1 4.8 2.8C13.2 5.1 14.8 4 16.8 4c3.3 0 5.6 3.2 4.4 6.6C19.5 15.4 12 20 12 20z"/></svg>';
+const favs = () => store.get('favs', []);
+function markFavNodes(root){
+  const set = new Set(favs().map(f => f.k));
+  (root || document).querySelectorAll('[data-fav]').forEach(b => b.classList.toggle('on', set.has(b.dataset.fav)));
+}
+new MutationObserver(muts => { if (muts.some(m => m.addedNodes.length)) markFavNodes(); }).observe(document.querySelector('main'), {childList:true, subtree:true});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fav]'); if (!b) return;
+  const list = favs(), k = b.dataset.fav, i = list.findIndex(f => f.k === k);
+  if (i >= 0){ list.splice(i, 1); toast('♡'); }
+  else {
+    const card = b.closest('.ayah, .hadith, .card, .votd');
+    const ar = card.querySelector('.arabic:not(.hidden)')?.innerText.trim() || '';
+    const txt = [...card.querySelectorAll('.tr, .txt')].map(x => x.innerText.trim()).join(' ').trim();
+    list.unshift({k, title: b.dataset.ftitle || k, ar: ar.slice(0, 400), text: txt.slice(0, 600), ts: Date.now()});
+    toast('❤️ ' + t('fav'));
+  }
+  store.set('favs', list); markFavNodes();
+  if (current === 'favs') renderFavs();
+});
+function renderFavs(){
+  const list = favs();
+  if (!list.length){ $('#favList').innerHTML = `<div class="card muted center" style="padding:30px 18px">${t('noFavs')}</div>`; return; }
+  $('#favList').innerHTML = list.map(f => `<div class="card dcard">
+    <div class="row" style="justify-content:space-between;margin-bottom:6px"><span class="badge">${esc(f.title)}</span>
+      <button class="ib on" data-fav="${esc(f.k)}">${ICON_HEART}</button></div>
+    ${f.ar ? `<div class="arabic" style="font-size:22px">${esc(f.ar)}</div>` : ''}
+    <div class="tr">${esc(f.text)}</div>
+    <div class="foot"><span style="flex:1"></span><button class="ib" data-share="${esc(f.title)}">${ICON_SHARE}</button>
+      <button class="btn ghost small" data-fopen="${esc(f.k)}">${t('open')} ›</button></div></div>`).join('');
+  $('#favList').querySelectorAll('[data-fopen]').forEach(b => b.onclick = () => openFav(b.dataset.fopen));
+}
+async function openFav(k){
+  const [type, a, b] = k.split(':');
+  if (type === 'q'){ show('quran'); if (!surahs.length) await initQuran(); loadSurah(+a, +b); }
+  else if (type === 'h'){
+    show('hadith');
+    document.querySelector('.seg[data-seg="hadith"] [data-pane="hSearch"]').click();
+    $('#hadithNum').value = a; showHadithNum(+a, $('#hadithNumResult'));
+  }
+}
+
+/* ---------- Rezitator & ganze Sure ---------- */
+S.reciter = store.get('reciter', 'ar.alafasy');
+$('#reciterSel').value = S.reciter;
+$('#reciterSel').onchange = e => { S.reciter = e.target.value; store.set('reciter', S.reciter); };
+const audioSrc = (no, i) => `https://cdn.islamic.network/quran/audio/${[128,64,192][i]}/${S.reciter}/${no}.mp3`;
+$('#playSurah').onclick = () => {
+  const first = $('#surahBody [data-play]');
+  if (playingBtn && !player.paused){ player.pause(); playingBtn.innerHTML = ICON_PLAY; return; }
+  if (first) playAyah(+first.dataset.play, first);
+};
+
+/* ---------- Tasbih ---------- */
+const TB = Object.assign({i:0, goal:33, count:0, seq:null}, store.get('tb', {}));
+const SEQ = [[0,33],[1,33],[2,34]];
+function saveTb(){ store.set('tb', TB); }
+function renderTasbih(){
+  const D = YC.dhikr, L = lng();
+  $('#dhikrRow').innerHTML = D.map((d, i) => `<button class="${i === TB.i ? 'on' : ''}" data-di="${i}">${d.tl}</button>`).join('');
+  $('#dhikrRow').querySelectorAll('[data-di]').forEach(b => b.onclick = () => { TB.i = +b.dataset.di; TB.count = 0; TB.seq = null; saveTb(); renderTasbih(); });
+  const d = D[TB.i];
+  $('#tbAr').textContent = d.ar; $('#tbTr').textContent = d[L];
+  $('#tbCount').textContent = TB.count;
+  $('#tbGoal').textContent = TB.goal ? '/ ' + TB.goal : '∞';
+  const C = 603.2, pct = TB.goal ? Math.min(1, TB.count / TB.goal) : (TB.count % 33) / 33;
+  $('#tbRing').setAttribute('stroke-dashoffset', (C * (1 - pct)).toFixed(1));
+  $('#tbGoals').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.g === TB.goal));
+  $('#tbTotal').textContent = t('todayTotal', {n: store.get('tbTotal-' + today(), 0)});
+}
+$('#tbTap').onclick = () => {
+  TB.count++; store.set('tbTotal-' + today(), store.get('tbTotal-' + today(), 0) + 1);
+  if (navigator.vibrate) navigator.vibrate(TB.goal && TB.count === TB.goal ? [40, 60, 40] : 8);
+  if (TB.goal && TB.count >= TB.goal){
+    toast('✓ ' + TB.goal + '× ' + YC.dhikr[TB.i].tl);
+    if (TB.seq !== null && TB.seq < SEQ.length - 1){ TB.seq++; [TB.i, TB.goal] = SEQ[TB.seq]; TB.count = 0; }
+    else if (TB.seq !== null){ TB.seq = null; TB.count = 0; toast('Māšāʾallāh ✓'); }
+    else TB.count = 0;
+  }
+  saveTb(); renderTasbih();
+};
+$('#tbGoals').querySelectorAll('button').forEach(b => b.onclick = () => { TB.goal = +b.dataset.g; TB.count = 0; TB.seq = null; saveTb(); renderTasbih(); });
+$('#tbReset').onclick = () => { TB.count = 0; saveTb(); renderTasbih(); };
+$('#tbAfter').onclick = () => { TB.seq = 0; [TB.i, TB.goal] = SEQ[0]; TB.count = 0; saveTb(); renderTasbih(); };
+
+/* ---------- Adhkar ---------- */
+let adhWhen = new Date().getHours() < 14 ? 'morning' : 'evening';
+function dcard(x, i, counterKey){
+  const L = lng(), cnt = counterKey ? (store.get(counterKey, {})[i] || 0) : 0, left = x.n ? Math.max(0, x.n - cnt) : 0;
+  return `<div class="card dcard">
+    <div class="arabic">${esc(x.ar)}</div>
+    ${x.tl ? `<div class="tl">${esc(x.tl)}</div>` : ''}
+    <div class="tr">${esc(x[L])}</div>
+    <div class="foot"><span class="muted" style="flex:1;font-size:12px">${esc(x.src || '')}</span>
+      ${x.quran ? `<button class="btn ghost small" data-openq="${x.quran[0]}">${t('read')} ›</button>` : ''}
+      <button class="ib" data-share="${esc(x.src || 'Duʿā')}">${ICON_SHARE}</button>
+      ${counterKey && x.n ? `<button class="cnt-btn ${left === 0 ? 'done' : ''}" data-cnt="${i}">${left === 0 ? '✓' : left + '×'}</button>` : ''}</div></div>`;
+}
+function renderAdhkar(){
+  $('#adhSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.w === adhWhen));
+  const key = `adh-${today()}-${adhWhen}`;
+  const items = YC.adhkar.map((x, i) => [x, i]).filter(([x]) => x.when === 'both' || x.when === adhWhen);
+  $('#adhList').innerHTML = items.map(([x, i]) => dcard(x, i, key)).join('');
+  $('#adhList').querySelectorAll('[data-cnt]').forEach(b => b.onclick = () => {
+    const m = store.get(key, {}), i = +b.dataset.cnt, x = YC.adhkar[i];
+    m[i] = Math.min(x.n, (m[i] || 0) + 1); store.set(key, m);
+    if (navigator.vibrate) navigator.vibrate(m[i] === x.n ? [30, 40, 30] : 8);
+    const left = x.n - m[i]; b.textContent = left === 0 ? '✓' : left + '×'; b.classList.toggle('done', left === 0);
+  });
+  bindOpenQ($('#adhList'));
+}
+function bindOpenQ(root){ root.querySelectorAll('[data-openq]').forEach(b => b.onclick = async () => { show('quran'); if (!surahs.length) await initQuran(); loadSurah(+b.dataset.openq); }); }
+$('#adhSeg').querySelectorAll('button').forEach(b => b.onclick = () => { adhWhen = b.dataset.w; renderAdhkar(); });
+
+/* ---------- Duʿās ---------- */
+let duaCat = 'all';
+function renderDuas(){
+  const L = lng(), li = S.lang === 'tr' ? 1 : 0;
+  $('#duaCats').innerHTML = `<button class="chip ${duaCat === 'all' ? 'on' : ''}" data-c="all">${t('all')}</button>` +
+    Object.entries(YC.duaCats).map(([k, v]) => `<button class="chip ${duaCat === k ? 'on' : ''}" data-c="${k}">${v[li]}</button>`).join('');
+  $('#duaCats').querySelectorAll('[data-c]').forEach(b => b.onclick = () => { duaCat = b.dataset.c; renderDuas(); });
+  $('#duaList').innerHTML = YC.duas.filter(d => duaCat === 'all' || d.cat === duaCat).map(d => dcard(d)).join('');
+}
+
+/* ---------- 99 Namen ---------- */
+let namesMode = 'list', nameIdx = store.get('nameIdx', 0), nameFlip = false;
+function renderNames(){
+  const L = S.lang === 'tr' ? 3 : 2;
+  $('#namesSeg').querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.m === namesMode));
+  if (namesMode === 'list'){
+    $('#namesBody').innerHTML = `<div class="card">` + YC.names.map((n, i) => `<div class="name-row">
+      <div class="num"><span>${i+1}</span></div><div style="flex:1;min-width:0"><b>${esc(n[1])}</b><div class="muted">${esc(n[L])}</div></div>
+      <div class="nar">${n[0]}</div></div>`).join('') + `</div>`;
+  } else {
+    const n = YC.names[nameIdx];
+    $('#namesBody').innerHTML = `<div class="card hero flash" id="flash">
+      <div class="label">${nameIdx + 1} / 99</div>
+      <div class="nar">${n[0]}</div>
+      ${nameFlip ? `<div style="font-size:22px;font-weight:700;margin-top:6px">${esc(n[1])}</div><div class="muted" style="margin-top:6px;font-size:15px">${esc(n[L])}</div>`
+                 : `<div class="muted" style="margin-top:10px">${t('tapToFlip')}</div>`}
+    </div>
+    <div class="row" style="gap:10px"><button class="btn ghost" style="flex:1" id="nPrev">‹</button><button class="btn ghost" style="flex:1" id="nRand">🔀</button><button class="btn" style="flex:2" id="nNext">${t('next')} ›</button></div>`;
+    $('#flash').onclick = () => { nameFlip = !nameFlip; renderNames(); };
+    const go = i => { nameIdx = (i + 99) % 99; nameFlip = false; store.set('nameIdx', nameIdx); renderNames(); };
+    $('#nPrev').onclick = () => go(nameIdx - 1); $('#nNext').onclick = () => go(nameIdx + 1);
+    $('#nRand').onclick = () => go(Math.floor(Math.random() * 99));
+  }
+}
+$('#namesSeg').querySelectorAll('button').forEach(b => b.onclick = () => { namesMode = b.dataset.m; renderNames(); });
+
+/* ---------- Khatm-Plan ---------- */
+function renderKhatm(){
+  const k = store.get('khatm', null), box = $('#khatmBody');
+  if (!k){
+    box.innerHTML = `<div class="card hero"><div style="font-size:44px">📖</div><div class="name" style="font-size:28px">${t('khatm')}</div>
+      <p class="muted">${t('psKhatm')} · 1 Juz ${S.lang === 'tr' ? 'günde' : 'pro Tag'}</p>
+      <button class="btn" id="khStart">${t('khatmStart')}</button></div>`;
+    $('#khStart').onclick = () => { store.set('khatm', {start: today(), done: []}); renderKhatm(); };
+    return;
+  }
+  if (!surahs.length && !loaded.quran) initQuran().then(() => current === 'khatm' && renderKhatm());
+  const dayN = Math.min(30, daysBetween(new Date(k.start + 'T00:00'), new Date()) + 1), done = k.done;
+  const names = surahs.length ? surahs : null;
+  box.innerHTML = `<div class="card">
+      <div class="row" style="justify-content:space-between"><b style="font-size:18px">${done.length === 30 ? t('khatmFinished') : t('khatmToday', {n: dayN})}</b><span class="badge">${done.length}/30</span></div>
+      <div class="progress"><i style="width:${done.length / 30 * 100}%"></i></div>
+      <div class="muted">${t('khatmDone', {n: done.length})}</div></div>
+    <div class="card">${YC.juz.map(([s, a], i) => {
+      const n = i + 1, on = done.includes(n);
+      return `<div class="juz-row ${n === dayN && !on ? 'today' : ''}"><button class="jck ${on ? 'on' : ''}" data-jz="${n}">${CHECK}</button>
+        <div style="flex:1"><b>Juz ${n}</b><div class="muted">${names ? esc(names[s-1].englishName) : 'Sure ' + s} ${s}:${a}</div></div>
+        <button class="btn ghost small" data-jr="${s}:${a}">${t('read')} ›</button></div>`;
+    }).join('')}</div>
+    <button class="btn ghost" id="khReset" style="width:100%">${t('khatmReset')}</button>`;
+  box.querySelectorAll('[data-jz]').forEach(b => b.onclick = () => {
+    const kk = store.get('khatm'), n = +b.dataset.jz, i = kk.done.indexOf(n);
+    if (i >= 0) kk.done.splice(i, 1); else kk.done.push(n);
+    store.set('khatm', kk); renderKhatm();
+  });
+  box.querySelectorAll('[data-jr]').forEach(b => b.onclick = async () => { const [s, a] = b.dataset.jr.split(':').map(Number); show('quran'); if (!surahs.length) await initQuran(); loadSurah(s, a > 1 ? a : null); });
+  $('#khReset').onclick = () => { if (confirm(t('khatmReset') + '?')){ store.set('khatm', null); renderKhatm(); } };
+}
+
+/* ---------- Moscheen in der Nähe ---------- */
+let mqRadius = 5000, mqMap = null, mqLayer = null;
+const hav = (a, b, c, d) => { const R = 6371, x = rad(c - a), y = rad(d - b); const h = Math.sin(x/2)**2 + Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(y/2)**2; return 2*R*Math.asin(Math.sqrt(h)); };
+function loadLeaflet(){
+  if (window.L) return Promise.resolve();
+  return new Promise((res, rej) => {
+    const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(l);
+    const sc = document.createElement('script'); sc.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+  });
+}
+async function initMosques(){
+  $('#mqRadius').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === mqRadius));
+  if (!S.loc){ $('#mqList').innerHTML = `<div class="muted">${t('noLoc')}</div>`; return; }
+  $('#mqList').innerHTML = '<div class="loader"></div>';
+  const {lat, lng: lo} = S.loc;
+  const q = `[out:json][timeout:25];(nwr["amenity"="place_of_worship"]["religion"="muslim"](around:${mqRadius},${lat},${lo}););out center 80;`;
+  let data;
+  try{ data = await getJSON([`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`, `https://overpass.kumi.systems/api/interpreter?data=${encodeURIComponent(q)}`]); }
+  catch{ $('#mqList').innerHTML = `<div class="err">${t('netErr')}</div>`; return; }
+  const list = (data.elements || []).map(e => {
+    const la = e.lat ?? e.center?.lat, ln = e.lon ?? e.center?.lon, tg = e.tags || {};
+    const addr = [[tg['addr:street'], tg['addr:housenumber']].filter(Boolean).join(' '), tg['addr:city']].filter(Boolean).join(', ');
+    return {name: tg.name || tg['name:de'] || tg['name:tr'] || t('mosque'), addr, la, ln, d: hav(lat, lo, la, ln)};
+  }).filter(m => m.la).sort((a, b) => a.d - b.d);
+  $('#mqList').innerHTML = list.length ? list.slice(0, 40).map(m => `<div class="item">
+      <span class="tile-ic" style="width:38px;height:38px;font-size:18px">🕌</span>
+      <div class="main"><b>${esc(m.name)}</b><span class="muted">${m.d < 1 ? Math.round(m.d * 1000) + ' m' : m.d.toFixed(1).replace('.', ',') + ' km'}${m.addr ? ' · ' + esc(m.addr) : ''}</span></div>
+      <a class="btn ghost small" style="text-decoration:none" target="_blank" rel="noopener" href="https://maps.apple.com/?daddr=${m.la},${m.ln}&q=${encodeURIComponent(m.name)}">${S.lang === 'tr' ? 'Yol' : 'Route'}</a></div>`).join('')
+    : `<div class="muted">${t('noMosques')}</div>`;
+  try{
+    await loadLeaflet();
+    if (!mqMap){
+      mqMap = L.map('mqMap', {zoomControl:false, attributionControl:true});
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap'}).addTo(mqMap);
+    }
+    if (mqLayer) mqLayer.remove();
+    mqLayer = L.layerGroup().addTo(mqMap);
+    L.circleMarker([lat, lo], {radius:8, color:'#fff', weight:3, fillColor:'#3B82F6', fillOpacity:1}).addTo(mqLayer);
+    list.forEach(m => L.circleMarker([m.la, m.ln], {radius:7, color:'#fff', weight:2, fillColor:'#C79A52', fillOpacity:1}).bindPopup(`<b>${esc(m.name)}</b><br>${m.addr ? esc(m.addr) : ''}`).addTo(mqLayer));
+    mqMap.setView([lat, lo], mqRadius <= 2000 ? 14 : mqRadius <= 5000 ? 13 : 12);
+    setTimeout(() => mqMap.invalidateSize(), 150);
+  }catch{}
+}
+$('#mqRadius').querySelectorAll('button').forEach(b => b.onclick = () => { mqRadius = +b.dataset.r; initMosques(); });
+
+/* ---------- Zakat-Rechner ---------- */
+const ZK = Object.assign({cur: S.lang === 'tr' ? 'TRY' : 'EUR', std: S.lang === 'tr' ? 80.18 : 85, gram: 0, v: {}}, store.get('zk', {}));
+let zkLive = null;
+function zkSave(){ store.set('zk', ZK); }
+const money = v => new Intl.NumberFormat(t('locale'), {style:'currency', currency: ZK.cur, maximumFractionDigits: 2}).format(v || 0);
+async function zkFetchPrice(){
+  $('#zkPriceInfo').textContent = '…';
+  try{
+    const [g, fx] = await Promise.all([getJSON('https://api.gold-api.com/price/XAU'), ZK.cur === 'USD' ? Promise.resolve({rates:{USD:1}}) : getJSON(`https://api.frankfurter.app/latest?from=USD&to=${ZK.cur}`)]);
+    const perGram = g.price / 31.1034768 * (fx.rates[ZK.cur] || 1);
+    zkLive = {cur: ZK.cur, gram: perGram, at: new Date()};
+    ZK.gram = +perGram.toFixed(2); $('#zkGram').value = ZK.gram; zkSave();
+    $('#zkPriceInfo').textContent = t('zkLive', {t: new Date().toLocaleTimeString(t('locale'), {hour:'2-digit', minute:'2-digit'})});
+  }catch{ $('#zkPriceInfo').textContent = t('zkManual'); }
+  zkCalc();
+}
+function zkCalc(){
+  const v = k => parseFloat(String(ZK.v[k] || 0).replace(',', '.')) || 0, gram = parseFloat(ZK.gram) || 0;
+  const net = v('cash') + v('goldg') * gram + v('silverv') + v('invest') + v('claims') - v('debts');
+  const nisab = ZK.std * gram, due = gram > 0 && net >= nisab;
+  $('#zkResult').innerHTML = `<div class="label">${t('zkDue')}</div>
+    <div class="count" style="font-size:44px;margin-top:6px">${due ? money(net * 0.025) : money(0)}</div>
+    <div class="muted" style="margin-top:6px">${due ? '' : t('zkNotDue')}</div>
+    <div class="row" style="justify-content:space-around;margin-top:14px">
+      <div><div class="muted" style="font-size:12px">${t('zkNet')}</div><b>${money(net)}</b></div>
+      <div><div class="muted" style="font-size:12px">${t('zkNisab')} (${String(ZK.std).replace('.', ',')} g)</div><b>${gram ? money(nisab) : '—'}</b></div></div>`;
+}
+function initZakat(){
+  $('#zkCur').querySelectorAll('button').forEach(b => { b.classList.toggle('on', b.dataset.c === ZK.cur); b.onclick = () => { ZK.cur = b.dataset.c; zkSave(); initZakat(); zkFetchPrice(); }; });
+  $('#zkStd').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.g === ZK.std); b.onclick = () => { ZK.std = +b.dataset.g; zkSave(); initZakat(); }; });
+  document.querySelectorAll('[data-zk]').forEach(inp => { inp.value = ZK.v[inp.dataset.zk] || ''; inp.oninput = () => { ZK.v[inp.dataset.zk] = inp.value; zkSave(); zkCalc(); }; });
+  $('#zkGram').value = ZK.gram || ''; $('#zkGram').oninput = e => { ZK.gram = e.target.value; zkSave(); zkCalc(); };
+  if (!zkLive || zkLive.cur !== ZK.cur) zkFetchPrice(); else zkCalc();
+}
+
+/* ---------- Gebets-Erinnerungen (Kalenderdatei) ---------- */
+const ICS = Object.assign({p: ['Fajr','Dhuhr','Asr','Maghrib','Isha'], before: 10, days: 30}, store.get('ics', {}));
+function renderIcs(){
+  const P = I18N[S.lang].prayers;
+  $('#icsPrayers').innerHTML = PRAYER_KEYS.map(k => `<button class="chip ${ICS.p.includes(k) ? 'on' : ''}" data-ip="${k}">${P[k]}</button>`).join('');
+  $('#icsPrayers').querySelectorAll('[data-ip]').forEach(b => b.onclick = () => { const i = ICS.p.indexOf(b.dataset.ip); if (i >= 0) ICS.p.splice(i, 1); else ICS.p.push(b.dataset.ip); store.set('ics', ICS); renderIcs(); });
+  $('#icsBefore').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.m === ICS.before); b.onclick = () => { ICS.before = +b.dataset.m; store.set('ics', ICS); renderIcs(); }; });
+  $('#icsDays').querySelectorAll('button').forEach(b => { b.classList.toggle('on', +b.dataset.d === ICS.days); b.onclick = () => { ICS.days = +b.dataset.d; store.set('ics', ICS); renderIcs(); }; });
+}
+$('#icsGo').onclick = async () => {
+  const msg = $('#icsMsg');
+  if (!S.loc){ msg.textContent = t('noLoc'); return; }
+  if (!ICS.p.length) return;
+  msg.textContent = '…';
+  const start = dayStart(new Date()), end = addDays(start, ICS.days), months = [];
+  for (let d = new Date(start); d < end; d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) months.push([d.getFullYear(), d.getMonth() + 1]);
+  let days = [];
+  try{
+    for (const [y, m] of months){
+      const r = await getJSON(`https://api.aladhan.com/v1/calendar/${y}/${m}?latitude=${S.loc.lat}&longitude=${S.loc.lng}&method=${S.method}`);
+      days = days.concat(r.data);
+    }
+  }catch{ msg.textContent = t('netErr'); return; }
+  const P = I18N[S.lang].prayers, stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Yusra//Gebetszeiten//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', 'X-WR-CALNAME:' + (S.lang === 'tr' ? 'Namaz Vakitleri' : 'Gebetszeiten')];
+  let n = 0;
+  for (const d of days){
+    const [dd, mm, yy] = d.date.gregorian.date.split('-').map(Number), date = new Date(yy, mm - 1, dd);
+    if (date < start || date >= end) continue;
+    for (const k of PRAYER_KEYS){
+      if (!ICS.p.includes(k)) continue;
+      const [h, mi] = d.timings[k].slice(0, 5).split(':');
+      const dt = `${yy}${pad(mm)}${pad(dd)}T${h}${mi}00`;
+      lines.push('BEGIN:VEVENT', `UID:${dt}-${k}@yusra`, `DTSTAMP:${stamp}`, `DTSTART:${dt}`, 'DURATION:PT15M',
+        `SUMMARY:🕌 ${P[k]} ${PRAYER_AR[k]}`, `DESCRIPTION:${S.loc.label} · Yüsra`, 'TRANSP:TRANSPARENT',
+        'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${P[k]}`, `TRIGGER:${ICS.before ? '-PT' + ICS.before + 'M' : 'PT0M'}`, 'END:VALARM', 'END:VEVENT');
+      n++;
+    }
+  }
+  lines.push('END:VCALENDAR');
+  const file = new File([lines.join('\r\n')], 'yusra-gebetszeiten.ics', {type: 'text/calendar'});
+  msg.textContent = t('icsReady', {n});
+  try{
+    if (navigator.canShare && navigator.canShare({files: [file]})){ await navigator.share({files: [file], title: 'Yüsra'}); return; }
+  }catch(e){ if (e && e.name === 'AbortError') return; }
+  const url = URL.createObjectURL(file), a = document.createElement('a');
+  a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+};
 
 // ---------- Start ----------
 applyTheme(S.theme);
